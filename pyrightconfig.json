@@ -1,0 +1,15 @@
+{
+  "pythonPath": "/Users/nico/miniconda3/bin/python",
+  "pythonVersion": "3.12",
+  "venvPath": "/Users/nico/miniconda3",
+  "include": [
+    "src",
+    "tests",
+    "experiments"
+  ],
+  "extraPaths": [
+    "."
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingModuleSource": "none"
+}
