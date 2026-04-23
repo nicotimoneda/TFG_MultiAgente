@@ -29,25 +29,32 @@ generation, evaluated on HumanEval and MBPP.
 TFG_MultiAgente/
 ├── src/
 │   ├── agents/
-│   │   ├── base_agent.py          # Abstract base with _call_llm + retry
-│   │   └── baseline_agent.py      # Config 1: monolithic solver
+│   │   ├── base_agent.py               # Abstract base with _call_llm + retry
+│   │   ├── baseline_agent.py           # Config 1: monolithic solver
+│   │   └── roles/                      # Config 2 & 3 role agents
+│   │       ├── product_manager.py      # PM: problem → PRD
+│   │       ├── architect.py            # Architect: PRD → design_doc
+│   │       ├── developer.py            # Developer: design_doc → code_artifact
+│   │       ├── qa_tester.py            # QA: sandbox executor (no LLM)
+│   │       └── code_reviewer.py        # Reviewer: verdict + structured review
 │   ├── evaluation/
-│   │   ├── humaneval_loader.py    # HumanEval loader + local cache
-│   │   ├── sandbox.py             # Subprocess-isolated code execution
-│   │   ├── metrics.py             # pass@k, avg_test_pass_rate, compute_all_metrics
-│   │   └── runner.py              # Full evaluation loop → CSV
+│   │   ├── humaneval_loader.py         # HumanEval loader + local cache
+│   │   ├── sandbox.py                  # Subprocess-isolated code execution
+│   │   ├── metrics.py                  # pass@k, avg_test_pass_rate, compute_all_metrics
+│   │   └── runner.py                   # Full evaluation loop → CSV
 │   ├── graph/
-│   │   └── baseline_graph.py      # build_baseline_graph, run_baseline
+│   │   ├── baseline_graph.py           # build_baseline_graph, run_baseline
+│   │   └── sequential_graph.py         # build_sequential_graph, run_sequential
 │   ├── state/
-│   │   └── schema.py              # AgentState TypedDict
-│   └── tools/                     # (reserved for S2/S3 tool integrations)
+│   │   └── schema.py                   # AgentState TypedDict (locked)
+│   └── tools/                          # (reserved for S3 tool integrations)
 ├── experiments/
-│   └── cache/                     # Cached benchmark JSON files
-├── figures/                       # Generated plots (not committed)
-├── doc/                           # Thesis document
-├── tests/                         # pytest test suite
+│   └── cache/                          # Cached benchmark JSON files
+├── figures/                            # Generated plots (not committed)
+├── doc/                                # Thesis document
+├── tests/                              # pytest test suite
 ├── pyproject.toml
-└── CONTEXT.md                     # This file
+└── CONTEXT.md                          # This file
 ```
 
 ## Key design decisions
@@ -60,6 +67,10 @@ TFG_MultiAgente/
   graph invocation; seeds are logged in the output CSV.
 - **pass@k estimator**: uses the unbiased formula from Chen et al. (2021),
   computed in log-space to avoid overflow for large n.
+- **QA agent**: deterministic — runs the sandbox, never calls the LLM, so it adds
+  zero token cost and is fast.
+- **Reviewer verdict**: parser raises `ValueError` if the first non-empty line is not
+  `VERDICT: APPROVE` or `VERDICT: REQUEST_CHANGES`.
 
 ## Environment variables
 
@@ -70,20 +81,43 @@ TFG_MultiAgente/
 ## Running an evaluation
 
 ```bash
-# Install dependencies
+# Activate the virtual environment
+source .venv/bin/activate
+
+# Install / update dependencies
 pip install -e .
 
-# Quick smoke test (1 problem, 1 seed)
-python -m src.evaluation.runner   # see runner.py for programmatic API
-
-# Full HumanEval baseline run
-python experiments/run_baseline.py   # to be added in S2
+# Quick smoke test — sequential pipeline, 1 problem
+python - <<'EOF'
+from src.evaluation.humaneval_loader import get_problem
+from src.graph.sequential_graph import run_sequential
+state = run_sequential(get_problem("HumanEval/1"), "llama-3.3-70b-versatile")
+print(state["review_comments"].split("\n")[0])
+EOF
 ```
 
 ## Sprint plan
 
-| Sprint | Deliverable |
-|--------|------------|
-| S1 (current) | Shared state, baseline graph, evaluation harness |
-| S2 | Sequential multi-agent pipeline (5 roles) |
-| S3 | Self-reflection loop + comparative analysis |
+| Sprint | Status   | Deliverable                                       |
+|--------|----------|---------------------------------------------------|
+| S1     | Done     | Shared state, baseline graph, evaluation harness  |
+| S2     | Done     | Sequential multi-agent pipeline (5 roles)         |
+| S3     | Next     | Self-reflection loop + comparative analysis       |
+
+## S2 — What was delivered
+
+- `src/agents/roles/product_manager.py` — PM agent: problem → PRD
+- `src/agents/roles/architect.py` — Architect agent: PRD → design_doc
+- `src/agents/roles/developer.py` — Developer agent: design_doc → code_artifact
+- `src/agents/roles/qa_tester.py` — QA agent: sandbox execution only, no LLM
+- `src/agents/roles/code_reviewer.py` — Reviewer agent: verdict parser + structured review
+- `src/graph/sequential_graph.py` — `build_sequential_graph` + `run_sequential`
+- `src/evaluation/runner.py` — sequential config wired in; QA results reused (no double sandbox)
+
+## Next sprint (S3)
+
+- `src/graph/self_reflection_graph.py` — add conditional edge reviewer → developer
+  when verdict is `REQUEST_CHANGES`
+- `max_revisions` parameter controlling the loop (test values: 1, 2, 3)
+- Temperature 0.4 for the Developer agent in the self-reflection configuration
+- Wire `config="self_reflection"` in `runner.py` (currently raises `NotImplementedError`)

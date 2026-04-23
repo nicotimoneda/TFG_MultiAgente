@@ -49,18 +49,18 @@ def run_evaluation(
         output_csv: Path to the output CSV file (created or appended to).
 
     Raises:
-        NotImplementedError: For configs not yet implemented (sequential,
-            self_reflection).
+        NotImplementedError: For configs not yet implemented (self_reflection).
         ValueError: For unknown config names.
     """
-    if config == "sequential":
-        raise NotImplementedError("Config 'sequential' will be implemented in S2.")
     if config == "self_reflection":
         raise NotImplementedError("Config 'self_reflection' will be implemented in S3.")
-    if config != "baseline":
+    if config not in ("baseline", "sequential"):
         raise ValueError(f"Unknown config '{config}'. Expected baseline | sequential | self_reflection.")
 
-    from src.graph.baseline_graph import run_baseline  # lazy import
+    if config == "baseline":
+        from src.graph.baseline_graph import run_baseline as _run  # lazy import
+    else:
+        from src.graph.sequential_graph import run_sequential as _run  # type: ignore[assignment]  # lazy import
 
     n_problems = len(problems)
     total_runs = n_problems * len(seeds)
@@ -90,17 +90,22 @@ def run_evaluation(
                 )
 
                 try:
-                    state: AgentState = run_baseline(problem, model_name)
+                    state: AgentState = _run(problem, model_name)
                 except Exception as exc:  # noqa: BLE001
                     logger.error("Graph failed for %s seed=%d: %s", task_id, seed, exc)
                     _write_failed_row(writer, benchmark, task_id, config, seed)
                     continue
 
-                # Run the generated code in the sandbox against the benchmark tests.
-                test_results = execute_code_safely(
-                    code=state["code_artifact"],
-                    test_cases=state["test_cases"],
-                )
+                # For sequential config the QA agent already ran the sandbox;
+                # re-use those results directly to avoid double execution.
+                if config == "sequential" and state["test_results"]:
+                    raw = {k: v for k, v in state["test_results"].items() if k != "qa_summary"}
+                    test_results = raw
+                else:
+                    test_results = execute_code_safely(
+                        code=state["code_artifact"],
+                        test_cases=state["test_cases"],
+                    )
                 pass_all = all(test_results.values()) if test_results else False
                 pass_rate = (
                     sum(test_results.values()) / len(test_results)
