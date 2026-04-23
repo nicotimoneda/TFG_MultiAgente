@@ -1,7 +1,8 @@
 {
-  "pythonPath": "/Users/nico/miniconda3/bin/python",
+  "pythonPath": "/Users/nico/UNI/TFG/TFG_MultiAgente/.venv/bin/python",
   "pythonVersion": "3.12",
-  "venvPath": "/Users/nico/miniconda3",
+  "venvPath": "/Users/nico/UNI/TFG/TFG_MultiAgente",
+  "venv": ".venv",
   "include": [
     "src",
     "tests",
