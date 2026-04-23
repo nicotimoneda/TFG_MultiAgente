@@ -1,7 +1,11 @@
 """HumanEval dataset loader with local caching.
 
-Downloads the openai/human-eval dataset from HuggingFace on first use and
-caches it to disk so subsequent runs are offline-capable.
+Downloads the evalplus/humanevalplus dataset from HuggingFace on first use
+and caches it to disk so subsequent runs are offline-capable.
+
+Note: the original openai/human-eval dataset was removed from the Hub;
+evalplus/humanevalplus is a drop-in replacement with the same 164 problems
+and identical schema, plus enhanced test suites.
 """
 
 import json
@@ -11,7 +15,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 _CACHE_PATH = Path("experiments/cache/humaneval.json")
-_HF_DATASET = "openai/human-eval"
+_HF_DATASET = "evalplus/humanevalplus"
 _HF_SPLIT = "test"
 
 
@@ -33,7 +37,7 @@ def load_humaneval() -> list[dict]:
     logger.info("Downloading HumanEval from HuggingFace (%s)…", _HF_DATASET)
     from datasets import load_dataset  # lazy import — optional at module load time
 
-    dataset = load_dataset(_HF_DATASET, split=_HF_SPLIT, trust_remote_code=True)
+    dataset = load_dataset(_HF_DATASET, split=_HF_SPLIT)
 
     problems: list[dict] = [
         {
