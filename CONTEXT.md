@@ -102,7 +102,7 @@ EOF
 |--------|----------|---------------------------------------------------|
 | S1     | Done     | Shared state, baseline graph, evaluation harness  |
 | S2     | Done     | Sequential multi-agent pipeline (5 roles)         |
-| S3     | Next     | Self-reflection loop + comparative analysis       |
+| S3     | Done     | Self-reflection loop + comparative analysis       |
 
 ## S2 — What was delivered
 
@@ -114,10 +114,20 @@ EOF
 - `src/graph/sequential_graph.py` — `build_sequential_graph` + `run_sequential`
 - `src/evaluation/runner.py` — sequential config wired in; QA results reused (no double sandbox)
 
-## Next sprint (S3)
+## S3 — What was delivered
 
-- `src/graph/self_reflection_graph.py` — add conditional edge reviewer → developer
-  when verdict is `REQUEST_CHANGES`
-- `max_revisions` parameter controlling the loop (test values: 1, 2, 3)
-- Temperature 0.4 for the Developer agent in the self-reflection configuration
-- Wire `config="self_reflection"` in `runner.py` (currently raises `NotImplementedError`)
+- `src/graph/self_reflection_graph.py` — `ReflectiveDeveloperAgent` (subclass, temp=0.4),
+  `build_self_reflection_graph(model_name, max_revisions)` with conditional edge
+  reviewer → developer when verdict is `REQUEST_CHANGES` and `revision_count < max_revisions`,
+  plus `run_self_reflection` helper
+- `experiments/configs/self_reflection.yaml` — experiment reproducibility config
+- `src/evaluation/runner.py` — all 3 configs now active; `max_revisions` param added;
+  `revision_count` CSV column added
+
+## Next: Experiments (S4)
+
+- Run baseline on HumanEval (164 problems, 5 seeds) → `experiments/results/baseline_humaneval.csv`
+- Run sequential on HumanEval → `experiments/results/sequential_humaneval.csv`
+- Run self_reflection (max_revisions=1,2,3) on HumanEval → separate CSVs per value
+- Same for MBPP subset (200 problems)
+- Needs `GROQ_API_KEY` in environment

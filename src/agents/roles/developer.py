@@ -3,7 +3,7 @@
 import re
 import logging
 
-from langchain_groq import ChatGroq
+from langchain_core.language_models import BaseChatModel
 
 from src.agents.base_agent import BaseAgent
 from src.state.schema import AgentState
@@ -30,17 +30,17 @@ class DeveloperAgent(BaseAgent):
     from state; writes Python source code to ``state["code_artifact"]``.
     """
 
-    def __init__(self, model_name: str, groq_client: ChatGroq) -> None:
+    def __init__(self, model_name: str, llm_client: BaseChatModel) -> None:
         """Initialise the DeveloperAgent.
 
         Args:
-            model_name: Groq model identifier.
-            groq_client: Configured ChatGroq instance.
+            model_name: HuggingFace model repo ID.
+            llm_client: Configured LangChain chat model.
         """
         super().__init__(
             role="developer",
             model_name=model_name,
-            groq_client=groq_client,
+            llm_client=llm_client,
         )
 
     def run(self, state: AgentState) -> AgentState:

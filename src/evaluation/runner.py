@@ -23,6 +23,7 @@ _CSV_FIELDS = [
     "tokens_input",
     "tokens_output",
     "latency_seconds",
+    "revision_count",
 ]
 
 
@@ -32,6 +33,7 @@ def run_evaluation(
     problems: list[dict],
     seeds: list[int],
     output_csv: str,
+    max_revisions: int = 1,
 ) -> None:
     """Run the full evaluation loop and write per-sample results to CSV.
 
@@ -47,20 +49,24 @@ def run_evaluation(
         problems: List of problem dicts (HumanEval or MBPP schema).
         seeds: List of integer seeds; one full pass per seed.
         output_csv: Path to the output CSV file (created or appended to).
+        max_revisions: Maximum self-reflection revision cycles (only used when
+            config is ``'self_reflection'``). Defaults to 1.
 
     Raises:
-        NotImplementedError: For configs not yet implemented (self_reflection).
         ValueError: For unknown config names.
     """
-    if config == "self_reflection":
-        raise NotImplementedError("Config 'self_reflection' will be implemented in S3.")
-    if config not in ("baseline", "sequential"):
+    if config not in ("baseline", "sequential", "self_reflection"):
         raise ValueError(f"Unknown config '{config}'. Expected baseline | sequential | self_reflection.")
 
     if config == "baseline":
         from src.graph.baseline_graph import run_baseline as _run  # lazy import
-    else:
+    elif config == "sequential":
         from src.graph.sequential_graph import run_sequential as _run  # type: ignore[assignment]  # lazy import
+    else:
+        from src.graph.self_reflection_graph import run_self_reflection  # lazy import
+
+        def _run(problem: dict, model_name: str) -> AgentState:  # type: ignore[misc]
+            return run_self_reflection(problem, model_name, max_revisions=max_revisions)
 
     n_problems = len(problems)
     total_runs = n_problems * len(seeds)
@@ -96,9 +102,9 @@ def run_evaluation(
                     _write_failed_row(writer, benchmark, task_id, config, seed)
                     continue
 
-                # For sequential config the QA agent already ran the sandbox;
-                # re-use those results directly to avoid double execution.
-                if config == "sequential" and state["test_results"]:
+                # For sequential/self_reflection configs the QA agent already ran the
+                # sandbox; re-use those results directly to avoid double execution.
+                if config in ("sequential", "self_reflection") and state["test_results"]:
                     raw = {k: v for k, v in state["test_results"].items() if k != "qa_summary"}
                     test_results = raw
                 else:
@@ -124,6 +130,7 @@ def run_evaluation(
                         "tokens_input": state["tokens_input"],
                         "tokens_output": state["tokens_output"],
                         "latency_seconds": round(state["latency_seconds"], 4),
+                        "revision_count": state["revision_count"],
                     }
                 )
                 csv_file.flush()
@@ -157,5 +164,6 @@ def _write_failed_row(
             "tokens_input": 0,
             "tokens_output": 0,
             "latency_seconds": 0.0,
+            "revision_count": 0,
         }
     )
