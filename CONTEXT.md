@@ -103,6 +103,7 @@ EOF
 | S1     | Done     | Shared state, baseline graph, evaluation harness  |
 | S2     | Done     | Sequential multi-agent pipeline (5 roles)         |
 | S3     | Done     | Self-reflection loop + comparative analysis       |
+| S4     | Done     | Experiment runner, dashboard, quick-check script  |
 
 ## S2 — What was delivered
 
@@ -124,10 +125,41 @@ EOF
 - `src/evaluation/runner.py` — all 3 configs now active; `max_revisions` param added;
   `revision_count` CSV column added
 
-## Next: Experiments (S4)
+## S4 — What was delivered
 
-- Run baseline on HumanEval (164 problems, 5 seeds) → `experiments/results/baseline_humaneval.csv`
-- Run sequential on HumanEval → `experiments/results/sequential_humaneval.csv`
-- Run self_reflection (max_revisions=1,2,3) on HumanEval → separate CSVs per value
-- Same for MBPP subset (200 problems)
-- Needs `GROQ_API_KEY` in environment
+- `experiments/run_experiments.py` — Full experiment runner (9 100 runs: 5 configs × 5 seeds × 364 problems).
+  Resume-capable (skips completed rows on restart). Writes one CSV per config to `experiments/results/`.
+  Fault-tolerant (try/except per run, error column + `experiments/logs/errors.log`).
+  Atomic `progress.json` updated after every run. CLI: `--model`, `--configs`, `--benchmarks`, `--seeds`, `--workers`.
+- `experiments/dashboard.py` — Live rich terminal dashboard. Reads `progress.json` + CSVs every 2 seconds.
+  Shows overall progress bar, per-config pass@1 / tokens / latency, recent results (colour-coded),
+  current run, and last 3 errors.
+- `experiments/quick_check.py` — 10-problem sanity check (5 configs, seed=42, ~15 min).
+  Prints a summary table; writes `experiments/results/quick_check.csv`.
+
+## Current status — how to run
+
+```bash
+# Install experiment extras
+pip install -e ".[experiments]"
+
+# PASO 1 — sanity check first (~15 min)
+python experiments/quick_check.py
+
+# PASO 2 — full run (Terminal A) + live dashboard (Terminal B)
+# Terminal A:
+python experiments/run_experiments.py
+# Terminal B:
+python experiments/dashboard.py
+
+# Resume after interruption: just re-run Terminal A — already-done rows are skipped.
+```
+
+Output CSVs (one per config, columns: benchmark, problem_id, config, seed,
+pass_all_tests, test_pass_rate, tokens_input, tokens_output, latency_seconds,
+revision_count, timestamp, model, error):
+- `experiments/results/baseline_results.csv`
+- `experiments/results/sequential_results.csv`
+- `experiments/results/self_reflection_r1_results.csv`
+- `experiments/results/self_reflection_r2_results.csv`
+- `experiments/results/self_reflection_r3_results.csv`

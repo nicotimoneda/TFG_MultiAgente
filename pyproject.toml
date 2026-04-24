@@ -14,6 +14,9 @@ dependencies = [
     "pandas>=2.2.0",
 ]
 
+[project.optional-dependencies]
+experiments = ["rich>=13.0", "tqdm>=4.65"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
