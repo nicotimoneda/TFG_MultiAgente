@@ -74,7 +74,7 @@ def run_sequential(problem: dict, model_name: str) -> AgentState:
     """
     graph = build_sequential_graph(model_name)
 
-    test_cases = _extract_assert_lines(problem.get("test", ""))
+    test_cases = _extract_assert_lines(problem.get("test", ""), problem.get("entry_point", ""))
 
     initial_state: AgentState = {
         "problem_id": problem["task_id"],

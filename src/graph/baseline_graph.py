@@ -60,7 +60,7 @@ def run_baseline(problem: dict, model_name: str) -> AgentState:
     # Extract individual assert lines from the HumanEval test harness so the
     # sandbox can run each test case independently.
     raw_test: str = problem.get("test", "")
-    test_cases = _extract_assert_lines(raw_test)
+    test_cases = _extract_assert_lines(raw_test, problem.get("entry_point", ""))
 
     initial_state: AgentState = {
         "problem_id": problem["task_id"],
@@ -89,19 +89,25 @@ def run_baseline(problem: dict, model_name: str) -> AgentState:
     return final_state
 
 
-def _extract_assert_lines(test_source: str) -> list[str]:
-    """Extract assert statements from a HumanEval test function body.
+def _extract_assert_lines(test_source: str, entry_point: str = "") -> list[str]:
+    """Build executable test cases from a HumanEval/evalplus test string.
 
-    HumanEval wraps assertions in ``check(candidate)`` functions.  This helper
-    pulls the raw ``assert`` lines so the sandbox can evaluate them after
-    injecting the generated solution into the execution namespace.
+    evalplus wraps all assertions inside ``check(candidate)`` and never calls
+    ``check`` at module level. When that pattern is detected the whole test
+    source is returned as a single string with ``check(<entry_point>)`` appended,
+    so the sandbox can exec the solution, then exec this string to run every
+    assertion correctly. Falls back to extracting bare ``assert`` lines for
+    other formats (e.g. plain MBPP tests).
 
     Args:
-        test_source: Full source of the HumanEval test string (the ``test`` field).
+        test_source: Full source of the test field from the dataset.
+        entry_point: Name of the function defined by the solution code.
 
     Returns:
-        List of stripped assert lines.
+        List of executable test-case strings (usually one element for evalplus).
     """
+    if "def check(candidate):" in test_source and entry_point:
+        return [test_source + f"\ncheck({entry_point})"]
     lines = []
     for line in test_source.splitlines():
         stripped = line.strip()

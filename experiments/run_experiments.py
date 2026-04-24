@@ -54,8 +54,8 @@ _LOGS_DIR = Path("experiments/logs")
 _PROGRESS_FILE = _RESULTS_DIR / "progress.json"
 _MBPP_CACHE = Path("experiments/cache/mbpp.json")
 
-_ALL_SEEDS = [42, 123, 456, 789, 1234]
-_DEFAULT_MODEL = "meta-llama/Llama-3.1-70B-Instruct"
+_ALL_SEEDS = [42, 123, 456]
+_DEFAULT_MODEL = "qwen-3-235b-a22b-instruct-2507"
 
 # Each entry: (config_key, runner_config, max_revisions, csv_path)
 _CONFIG_SPECS: list[tuple[str, str, int, Path]] = [
@@ -354,7 +354,7 @@ def _execute_run(
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="TFG MultiAgente experiment runner")
-    parser.add_argument("--model", default=_DEFAULT_MODEL, help="HuggingFace model repo ID")
+    parser.add_argument("--model", default=_DEFAULT_MODEL, help="Together AI model ID")
     parser.add_argument(
         "--configs",
         default="baseline,sequential,self_reflection_r1,self_reflection_r2,self_reflection_r3",
@@ -362,7 +362,7 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--benchmarks",
-        default="humaneval,mbpp",
+        default="humaneval",
         help="Comma-separated benchmarks: humaneval, mbpp",
     )
     parser.add_argument(

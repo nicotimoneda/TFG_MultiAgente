@@ -1,21 +1,23 @@
-"""Factory for creating HuggingFace chat clients used across all graph configurations."""
+"""Factory for creating Cerebras chat clients used across all graph configurations."""
 
 import os
 
 from langchain_core.language_models import BaseChatModel
-from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+from langchain_openai import ChatOpenAI
 
 
-def create_chat_client(model_name: str, temperature: float = 0.2) -> BaseChatModel:
-    """Create a HuggingFace chat client for the given model.
+def get_llm_client(
+    model_name: str = "qwen-3-235b-a22b-instruct-2507",
+    temperature: float = 0.2,
+) -> BaseChatModel:
+    """Create a Cerebras chat client for the given model.
 
-    Uses the HuggingFace Inference API (serverless) with the token from
-    ``HF_TOKEN`` in the environment. All graph configurations call this
+    Uses the Cerebras Inference API (OpenAI-compatible) with the key from
+    ``CEREBRAS_API_KEY`` in the environment. All graph configurations call this
     factory so the backend can be swapped in a single place.
 
     Args:
-        model_name: HuggingFace repo ID, e.g.
-            ``'meta-llama/Llama-3.1-70B-Instruct'``.
+        model_name: Cerebras model ID, e.g. ``'qwen-3-235b-a22b-instruct-2507'``.
         temperature: Sampling temperature. Defaults to 0.2 for deterministic
             outputs; use 0.4 for the reflective developer pass.
 
@@ -23,12 +25,22 @@ def create_chat_client(model_name: str, temperature: float = 0.2) -> BaseChatMod
         A LangChain ``BaseChatModel`` compatible with ``.invoke(messages)``.
 
     Raises:
-        KeyError: If ``HF_TOKEN`` is not set in the environment.
+        ValueError: If ``CEREBRAS_API_KEY`` is not set in the environment.
     """
-    endpoint = HuggingFaceEndpoint(
-        repo_id=model_name,
-        huggingfacehub_api_token=os.environ["HF_TOKEN"],
+    api_key = os.getenv("CEREBRAS_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "CEREBRAS_API_KEY not found. "
+            "Get a free key at cloud.cerebras.ai → API Keys (no credit card needed). "
+            "Then: export CEREBRAS_API_KEY=your_key_here"
+        )
+    return ChatOpenAI(
+        base_url="https://api.cerebras.ai/v1",
+        api_key=api_key,
+        model=model_name,
         temperature=temperature,
-        max_new_tokens=2048,
     )
-    return ChatHuggingFace(llm=endpoint)
+
+
+# Alias for backwards compatibility with graph modules
+create_chat_client = get_llm_client
