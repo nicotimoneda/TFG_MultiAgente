@@ -59,7 +59,7 @@ _CONFIGS: list[tuple[str, str, int]] = [
 
 _SEED = 42
 _OUT_CSV = Path("experiments/results/quick_check.csv")
-_MODEL = "meta-llama/Llama-3.1-70B-Instruct"
+_MODEL = "qwen-3-235b-a22b-instruct-2507"
 
 _CSV_FIELDS = [
     "benchmark", "problem_id", "config", "seed",

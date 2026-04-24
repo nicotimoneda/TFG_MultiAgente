@@ -1,9 +1,9 @@
 config: self_reflection
-model: llama-3.3-70b-versatile
+model: qwen-3-235b-a22b-instruct-2507
 max_revisions_values: [1, 2, 3]
-seeds: [42, 123, 456, 789, 1234]
+seeds: [42, 123, 456]
 temperature_developer: 0.4
 temperature_others: 0.2
 benchmark_humaneval: evalplus/humanevalplus
-benchmark_mbpp_subset: 200
+benchmark_mbpp_subset: null  # removed from scope
 output_dir: experiments/results/

@@ -18,8 +18,8 @@ generation, evaluated on HumanEval and MBPP.
 
 - **Python 3.11+**
 - **LangGraph** — graph orchestration
-- **LangChain / langchain-groq** — LLM interface
-- **Groq API** — inference backend (Llama 3.3 70B, Qwen 2.5 Coder)
+- **LangChain / langchain-openai** — LLM interface (backend: HuggingFace → Groq → Together AI → Cerebras)
+- **Cerebras Inference** — inference backend, `llama3.1-70b`, free tier at cloud.cerebras.ai (`CEREBRAS_API_KEY` must be set)
 - **HuggingFace datasets** — benchmark loading
 - **scipy / numpy / pandas** — metrics and analysis
 
@@ -76,7 +76,7 @@ TFG_MultiAgente/
 
 | Variable | Purpose |
 |----------|---------|
-| `GROQ_API_KEY` | Groq inference API key (required) |
+| `CEREBRAS_API_KEY` | Cerebras inference API key (required — free at cloud.cerebras.ai, no credit card) |
 
 ## Running an evaluation
 

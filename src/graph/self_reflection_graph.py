@@ -179,7 +179,7 @@ def run_self_reflection(
     """
     graph = build_self_reflection_graph(model_name=model_name, max_revisions=max_revisions)
 
-    test_cases = _extract_assert_lines(problem.get("test", ""))
+    test_cases = _extract_assert_lines(problem.get("test", ""), problem.get("entry_point", ""))
 
     initial_state: AgentState = {
         "problem_id": problem["task_id"],
