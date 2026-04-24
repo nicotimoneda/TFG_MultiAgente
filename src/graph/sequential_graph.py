@@ -1,14 +1,13 @@
 """LangGraph graph for Config 2: sequential five-role pipeline."""
 
-import os
 import time
 import logging
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph as CompiledGraph
-from langchain_groq import ChatGroq
 
 from src.state.schema import AgentState
+from src.llm.client_factory import create_chat_client
 from src.agents.roles.product_manager import ProductManagerAgent
 from src.agents.roles.architect import ArchitectAgent
 from src.agents.roles.developer import DeveloperAgent
@@ -23,25 +22,23 @@ def build_sequential_graph(model_name: str) -> CompiledGraph:
     """Construct and compile the sequential multi-agent LangGraph.
 
     Node order: pm → architect → developer → qa → reviewer.
-    No conditional edges, no cycles. All agents share the same ChatGroq
+    No conditional edges, no cycles. All agents share the same HuggingFace
     client (and therefore the same model).
 
     Args:
-        model_name: Groq model identifier (e.g. ``'llama-3.3-70b-versatile'``).
+        model_name: HuggingFace model repo ID
+            (e.g. ``'meta-llama/Llama-3.1-70B-Instruct'``).
 
     Returns:
         Compiled LangGraph ready to be invoked with an AgentState.
     """
-    groq_client = ChatGroq(
-        model=model_name,
-        api_key=os.environ["GROQ_API_KEY"],
-    )
+    llm_client = create_chat_client(model_name)
 
-    pm = ProductManagerAgent(model_name=model_name, groq_client=groq_client)
-    architect = ArchitectAgent(model_name=model_name, groq_client=groq_client)
-    developer = DeveloperAgent(model_name=model_name, groq_client=groq_client)
-    qa = QATesterAgent(model_name=model_name, groq_client=groq_client)
-    reviewer = CodeReviewerAgent(model_name=model_name, groq_client=groq_client)
+    pm = ProductManagerAgent(model_name=model_name, llm_client=llm_client)
+    architect = ArchitectAgent(model_name=model_name, llm_client=llm_client)
+    developer = DeveloperAgent(model_name=model_name, llm_client=llm_client)
+    qa = QATesterAgent(model_name=model_name, llm_client=llm_client)
+    reviewer = CodeReviewerAgent(model_name=model_name, llm_client=llm_client)
 
     builder: StateGraph = StateGraph(AgentState)
 

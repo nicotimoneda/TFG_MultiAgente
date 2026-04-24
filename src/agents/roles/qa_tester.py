@@ -1,6 +1,6 @@
 """QA Tester agent: runs existing test cases through the sandbox (no LLM call)."""
 
-from langchain_groq import ChatGroq
+from langchain_core.language_models import BaseChatModel
 
 from src.agents.base_agent import BaseAgent
 from src.evaluation.sandbox import execute_code_safely
@@ -18,17 +18,17 @@ class QATesterAgent(BaseAgent):
     Token counts are not modified because no LLM call is made.
     """
 
-    def __init__(self, model_name: str, groq_client: ChatGroq) -> None:
+    def __init__(self, model_name: str, llm_client: BaseChatModel) -> None:
         """Initialise the QATesterAgent.
 
         Args:
-            model_name: Groq model identifier (unused but required by BaseAgent).
-            groq_client: ChatGroq instance (unused but required by BaseAgent).
+            model_name: HuggingFace model repo ID (unused but required by BaseAgent).
+            llm_client: BaseChatModel instance (unused but required by BaseAgent).
         """
         super().__init__(
             role="qa_tester",
             model_name=model_name,
-            groq_client=groq_client,
+            llm_client=llm_client,
         )
 
     def run(self, state: AgentState) -> AgentState:

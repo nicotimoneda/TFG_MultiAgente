@@ -1,0 +1,9 @@
+config: self_reflection
+model: llama-3.3-70b-versatile
+max_revisions_values: [1, 2, 3]
+seeds: [42, 123, 456, 789, 1234]
+temperature_developer: 0.4
+temperature_others: 0.2
+benchmark_humaneval: evalplus/humanevalplus
+benchmark_mbpp_subset: 200
+output_dir: experiments/results/

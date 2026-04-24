@@ -4,7 +4,7 @@ import time
 import logging
 from abc import ABC, abstractmethod
 
-from langchain_groq import ChatGroq
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.state.schema import AgentState
@@ -22,17 +22,17 @@ class BaseAgent(ABC):
     through `_call_llm`, which handles retries and token accumulation.
     """
 
-    def __init__(self, role: str, model_name: str, groq_client: ChatGroq) -> None:
+    def __init__(self, role: str, model_name: str, llm_client: BaseChatModel) -> None:
         """Initialise the agent.
 
         Args:
             role: Human-readable role label (e.g. 'monolithic_solver').
-            model_name: Groq model identifier passed to the client.
-            groq_client: Configured ChatGroq instance to use for inference.
+            model_name: HuggingFace repo ID of the model being used.
+            llm_client: Configured LangChain chat model to use for inference.
         """
         self.role = role
         self.model_name = model_name
-        self._client = groq_client
+        self._client = llm_client
 
     @abstractmethod
     def run(self, state: AgentState) -> AgentState:

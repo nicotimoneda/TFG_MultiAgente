@@ -1,15 +1,14 @@
 """LangGraph graph for Config 1: single-node baseline solver."""
 
-import os
 import time
 import logging
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.state import CompiledStateGraph as CompiledGraph
-from langchain_groq import ChatGroq
 
 from src.state.schema import AgentState
 from src.agents.baseline_agent import BaselineAgent
+from src.llm.client_factory import create_chat_client
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +20,14 @@ def build_baseline_graph(model_name: str) -> CompiledGraph:
     Control flow: START → solver → END.
 
     Args:
-        model_name: Groq model identifier (e.g. ``'llama-3.3-70b-versatile'``).
+        model_name: HuggingFace model repo ID
+            (e.g. ``'meta-llama/Llama-3.1-70B-Instruct'``).
 
     Returns:
         Compiled LangGraph ready to be invoked with an AgentState.
     """
-    groq_client = ChatGroq(
-        model=model_name,
-        api_key=os.environ["GROQ_API_KEY"],
-    )
-    agent = BaselineAgent(model_name=model_name, groq_client=groq_client)
+    llm_client = create_chat_client(model_name)
+    agent = BaselineAgent(model_name=model_name, llm_client=llm_client)
 
     def solver_node(state: AgentState) -> AgentState:
         return agent.run(state)
