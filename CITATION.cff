@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you reference this work, please cite it as below."
+title: >-
+  Orquestación de Equipos de Agentes LLM con Roles Especializados para
+  Resolución Colaborativa de Tareas Complejas de Ingeniería de Software
+type: thesis
+thesis-type: "Bachelor thesis"
+authors:
+  - family-names: Timoneda
+    given-names: Nicolás
+abstract: >-
+  Trabajo Fin de Grado que diseña, implementa y evalúa empíricamente un
+  sistema multi-agente basado en LLMs para generación automática de código
+  Python. Compara tres configuraciones LangGraph (baseline monolítico,
+  pipeline secuencial de cinco roles y pipeline con auto-revisión iterativa)
+  más tres variantes de ablación de rol, sobre HumanEval con análisis
+  estadístico pareado (McNemar) e intervalos de confianza bootstrap.
+keywords:
+  - multi-agent systems
+  - large language models
+  - LangGraph
+  - code generation
+  - HumanEval
+  - pass@k
+  - software engineering
+license: MIT
+date-released: "2026-06"
+repository-code: "https://github.com/nicotimoneda/TFG_MultiAgente"
+url: "https://github.com/nicotimoneda/TFG_MultiAgente"
+institution:
+  name: "Universidad Alfonso X el Sabio (UAX)"
+  city: "Madrid"
+  country: ES

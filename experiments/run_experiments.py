@@ -16,7 +16,6 @@ import os
 import random
 import re
 import sys
-import tempfile
 import threading
 import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -238,7 +237,6 @@ def _run_problem(
     problem: dict,
     model_name: str,
 ) -> dict:
-    from src.state.schema import AgentState  # type: ignore
 
     if runner_config == "baseline":
         from src.graph.baseline_graph import run_baseline  # type: ignore

@@ -15,3 +15,6 @@ HE,HumanEval/4,sequential,42,True,1.0,9935,2148,280.6407,0,2026-05-22T22:26:31.0
 HE,HumanEval/4,sequential,123,True,1.0,10131,2456,266.1155,0,2026-05-22T22:31:11.661042+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
 HE,HumanEval/4,sequential,456,True,1.0,9747,2724,481.2428,0,2026-05-22T22:35:37.796330+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
 HE,HumanEval/5,sequential,42,True,1.0,9669,2275,361.1767,0,2026-05-22T22:43:39.056676+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/5,sequential,123,True,1.0,9651,2252,354.8904,0,2026-05-22T22:49:40.248089+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/5,sequential,456,True,1.0,9118,1553,274.9808,0,2026-05-22T22:55:35.155532+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/6,sequential,42,True,1.0,5509,1060,199.0721,0,2026-05-22T23:00:10.160698+00:00,qwen2.5-coder:7b-instruct-q4_K_M,

@@ -18,13 +18,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from rich.columns import Columns
 from rich.console import Console
-from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
 from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn
-from rich.spinner import Spinner
 from rich.table import Table
 from rich.text import Text
 
@@ -144,7 +141,7 @@ def _read_error_log(n: int = 3) -> list[str]:
     try:
         lines = log_path.read_text(encoding="utf-8").splitlines()
         # Return last n non-empty lines
-        non_empty = [l for l in lines if l.strip()]
+        non_empty = [line for line in lines if line.strip()]
         return non_empty[-n:]
     except Exception:
         return []
@@ -181,7 +178,7 @@ def _render_overall(prog: dict) -> Panel:
         TaskProgressColumn(),
         TextColumn("{task.completed}/{task.total}"),
     )
-    task_id = bar.add_task("Overall", total=total, completed=completed)
+    _ = bar.add_task("Overall", total=total, completed=completed)
 
     # ETA
     last_updated = prog.get("last_updated", "")

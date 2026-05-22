@@ -4,10 +4,10 @@
 |---|---|---:|---:|---:|
 | HE | HumanEval/0 | 100% | 0% | 100% |
 | HE | HumanEval/1 | 100% | 67% | 33% |
+| HE | HumanEval/3 | 100% | 67% | 33% |
 | HE | HumanEval/2 | 100% | 100% | 0% |
-| HE | HumanEval/3 | 100% | — | 0% |
-| HE | HumanEval/4 | 100% | — | 0% |
-| HE | HumanEval/5 | 100% | — | 0% |
+| HE | HumanEval/4 | 100% | 100% | 0% |
+| HE | HumanEval/5 | 100% | 100% | 0% |
 | HE | HumanEval/6 | 100% | — | 0% |
 | HE | HumanEval/7 | 100% | — | 0% |
 | HE | HumanEval/8 | 67% | — | 0% |

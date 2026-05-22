@@ -11,7 +11,6 @@ import math
 import logging
 from typing import Any
 
-from scipy.special import comb  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 

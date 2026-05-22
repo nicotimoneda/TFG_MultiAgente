@@ -208,7 +208,7 @@ def plot_pass_at_1(
     values = [summary[c]["pass_at_1"] for c in cfgs]
     lows = [summary[c].get("pass_at_1_ci_low", values[i]) for i, c in enumerate(cfgs)]
     highs = [summary[c].get("pass_at_1_ci_high", values[i]) for i, c in enumerate(cfgs)]
-    errs_low = [v - l for v, l in zip(values, lows)]
+    errs_low = [v - lo for v, lo in zip(values, lows)]
     errs_high = [h - v for v, h in zip(values, highs)]
     labels = [_CONFIG_LABELS.get(c, c) for c in cfgs]
 
@@ -590,6 +590,235 @@ def pairwise_mcnemar_table(
 
 
 # ---------------------------------------------------------------------------
+# Auto-narrative
+# ---------------------------------------------------------------------------
+
+def _read_table_if_exists(path: Path) -> str | None:
+    """Return the file's text if it exists and is non-empty, else None."""
+    if not path.exists():
+        return None
+    text = path.read_text(encoding="utf-8").strip()
+    return text or None
+
+
+def _parse_mcnemar_table(text: str) -> list[dict[str, str]]:
+    """Parse the markdown produced by ``pairwise_mcnemar_table``."""
+    parsed: list[dict[str, str]] = []
+    for line in text.splitlines():
+        if not line.startswith("|") or line.startswith("|---") or "Config A" in line:
+            continue
+        parts = [p.strip() for p in line.strip("|").split("|")]
+        if len(parts) != 7 or "—" in parts:
+            continue
+        try:
+            parsed.append({
+                "config_a": parts[0],
+                "config_b": parts[1],
+                "n_pairs": int(parts[2]),
+                "b": int(parts[3]),
+                "c": int(parts[4]),
+                "p_value": float(parts[5]),
+                "method": parts[6],
+            })
+        except ValueError:
+            continue
+    return parsed
+
+
+def _adherence_all_full(text: str) -> bool | None:
+    """Return True if every adherence row reports 100.00%, False otherwise.
+
+    Returns None when the table cannot be parsed.
+    """
+    rates: list[str] = []
+    for line in text.splitlines():
+        if not line.startswith("|") or line.startswith("|---") or "Configuración" in line:
+            continue
+        parts = [p.strip() for p in line.strip("|").split("|")]
+        if len(parts) < 5:
+            continue
+        rates.append(parts[-1])
+    if not rates:
+        return None
+    return all(r == "100.00%" for r in rates)
+
+
+def generate_findings_narrative(
+    summary: dict[str, dict[str, float]],
+    rows: list[dict[str, Any]],
+    tables_dir: Path = _TABLES_DIR_DEFAULT,
+) -> str:
+    """Build a Spanish Markdown narrative summarising the current results.
+
+    The narrative is intended as a starting draft for chapter 7 of the
+    memoria. It never invents numbers: every figure cited is derived from
+    ``summary`` (the output of :func:`aggregate_by_config`) or ``rows``
+    (the output of :func:`load_all_results`). Optional sections that
+    depend on auxiliary tables (McNemar, adherencia) are skipped when
+    those files are absent.
+    """
+    paragraphs: list[str] = []
+
+    n_configs = len(summary)
+    total_runs = sum(int(s["n_runs"]) for s in summary.values())
+    benchmarks = sorted({r["benchmark"] for r in rows if not r["error"]})
+    bm_str = ", ".join(benchmarks) if benchmarks else "ningún benchmark"
+    cfg_names = ", ".join(_CONFIG_LABELS.get(c, c) for c in _ordered_configs(set(summary)))
+    paragraphs.append(
+        f"El análisis cubre {n_configs} configuración(es) con datos "
+        f"({cfg_names}), un total de {total_runs} ejecuciones válidas y "
+        f"los benchmarks {bm_str}."
+    )
+
+    ranked = sorted(summary.items(), key=lambda kv: kv[1]["pass_at_1"], reverse=True)
+    if ranked:
+        best_cfg, best_s = ranked[0]
+        best_label = _CONFIG_LABELS.get(best_cfg, best_cfg)
+        best_par = (
+            f"La configuración con mayor pass@1 es {best_label}, que alcanza "
+            f"{best_s['pass_at_1']:.2%} (IC 95% [{best_s['pass_at_1_ci_low']:.2%}, "
+            f"{best_s['pass_at_1_ci_high']:.2%}]) sobre {int(best_s['n_runs'])} ejecuciones."
+        )
+        if len(ranked) > 1:
+            worst_cfg, worst_s = ranked[-1]
+            worst_label = _CONFIG_LABELS.get(worst_cfg, worst_cfg)
+            best_par += (
+                f" En el extremo opuesto, {worst_label} obtiene {worst_s['pass_at_1']:.2%} "
+                f"(IC 95% [{worst_s['pass_at_1_ci_low']:.2%}, "
+                f"{worst_s['pass_at_1_ci_high']:.2%}]), lo que delimita el rango "
+                f"observado entre configuraciones."
+            )
+        else:
+            best_par += (
+                " Al disponer de una única configuración con datos, no es posible "
+                "establecer todavía un rango comparativo entre alternativas."
+            )
+        paragraphs.append(best_par)
+
+    if summary:
+        pareto: list[tuple[str, dict[str, float]]] = []
+        items = sorted(summary.items(), key=lambda kv: kv[1]["mean_tokens_total"])
+        best_pass = -1.0
+        for cfg, s in items:
+            if s["pass_at_1"] > best_pass:
+                pareto.append((cfg, s))
+                best_pass = s["pass_at_1"]
+        pareto_labels = ", ".join(
+            f"{_CONFIG_LABELS.get(c, c)} ({s['mean_tokens_total']:.0f} tokens, "
+            f"{s['pass_at_1']:.2%})"
+            for c, s in pareto
+        )
+        paragraphs.append(
+            "En el plano coste-calidad, la frontera de Pareto está formada por "
+            f"{pareto_labels}. Estas configuraciones no son dominadas por ninguna "
+            "otra: cualquier alternativa con menos tokens medios obtiene un pass@1 "
+            "inferior."
+        )
+
+    mcnemar_text = _read_table_if_exists(tables_dir / "pairwise_mcnemar.md")
+    if mcnemar_text:
+        mc_rows = _parse_mcnemar_table(mcnemar_text)
+        if mc_rows:
+            top = min(mc_rows, key=lambda r: r["p_value"])
+            direction = (
+                f"{top['config_a']} supera a {top['config_b']}"
+                if top["b"] > top["c"]
+                else (
+                    f"{top['config_b']} supera a {top['config_a']}"
+                    if top["c"] > top["b"]
+                    else "ambas configuraciones empatan en pares discordantes"
+                )
+            )
+            significance = (
+                "diferencia estadísticamente significativa al 5%"
+                if top["p_value"] < 0.05
+                else "diferencia no significativa al 5%"
+            )
+            paragraphs.append(
+                "El contraste pareado de McNemar con menor p-valor enfrenta a "
+                f"{top['config_a']} y {top['config_b']} sobre {top['n_pairs']} "
+                f"pares emparejados (b={top['b']}, c={top['c']}, "
+                f"p={top['p_value']:.4f}, método {top['method']}); {direction}, "
+                f"lo que constituye una {significance}."
+            )
+        else:
+            paragraphs.append(
+                "La tabla de McNemar existe pero no contiene comparaciones "
+                "interpretables todavía, probablemente por falta de pares "
+                "emparejados entre configuraciones."
+            )
+
+    sr_configs = [c for c in summary if c.startswith("self_reflection_r")]
+    if sr_configs:
+        sr_rows = [r for r in rows if not r["error"] and r["config"] in sr_configs]
+        if sr_rows:
+            revs = [r["revision_count"] for r in sr_rows]
+            mean_rev = statistics.fmean(revs)
+            median_rev = statistics.median(revs)
+            n_r0 = sum(1 for r in sr_rows if r["revision_count"] == 0)
+            frac_r0 = n_r0 / len(sr_rows)
+            paragraphs.append(
+                "En las configuraciones de self-reflection, el número medio de "
+                f"revisiones es {mean_rev:.2f} (mediana {median_rev:.0f}); el "
+                f"{frac_r0:.2%} de las ejecuciones aprueba sin necesidad de "
+                "ninguna revisión (r=0), lo que sugiere que el revisor sólo "
+                "interviene en una fracción acotada de los problemas."
+            )
+
+    ablation_cfgs = [c for c in summary if c.startswith("ablation_")]
+    if ablation_cfgs and "baseline" in summary:
+        baseline_p = summary["baseline"]["pass_at_1"]
+        drops = sorted(
+            ((c, baseline_p - summary[c]["pass_at_1"]) for c in ablation_cfgs),
+            key=lambda x: x[1],
+            reverse=True,
+        )
+        worst_cfg, worst_drop = drops[0]
+        paragraphs.append(
+            f"Entre las ablaciones, la eliminación correspondiente a "
+            f"{_CONFIG_LABELS.get(worst_cfg, worst_cfg)} es la que más penaliza "
+            f"el pass@1 respecto al baseline ({baseline_p:.2%}), con una caída "
+            f"de {worst_drop:.2%}. Este resultado posiciona al rol suprimido como "
+            "el más influyente sobre la calidad final dentro de la batería "
+            "actual."
+        )
+    elif ablation_cfgs:
+        paragraphs.append(
+            "Existen configuraciones de ablación con datos, pero no hay un "
+            "baseline disponible con el que contrastarlas, por lo que el "
+            "impacto relativo de cada rol no puede cuantificarse aún."
+        )
+
+    adherence_text = _read_table_if_exists(tables_dir / "adherence.md")
+    if adherence_text:
+        all_full = _adherence_all_full(adherence_text)
+        if all_full is True:
+            paragraphs.append(
+                "El análisis de adherencia estructural muestra una tasa del "
+                "100% en todas las configuraciones evaluadas: no se han "
+                "registrado fallos de formato ni avisos en el contrato de "
+                "salida JSON, lo que respalda la robustez del pipeline de "
+                "validación."
+            )
+        elif all_full is False:
+            paragraphs.append(
+                "La adherencia estructural no es uniforme entre configuraciones: "
+                "alguna combinación presenta fallos o avisos en el contrato de "
+                "salida, según refleja la tabla de adherencia generada."
+            )
+
+    paragraphs.append(
+        "Esta redacción ha sido generada automáticamente a partir de datos "
+        "parciales del experimento y debe revisarse manualmente antes de la "
+        "entrega final: las cifras dependen del estado actual de los CSV y "
+        "pueden variar a medida que se completen las ejecuciones pendientes."
+    )
+
+    body = "\n\n".join(paragraphs)
+    return f"# Hallazgos preliminares (borrador automático)\n\n{body}\n"
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -627,6 +856,11 @@ def main() -> None:
         f"McNemar: {len(mcnemar_rows)} pairs compared, "
         f"{sig} with p<0.05"
     )
+
+    narrative = generate_findings_narrative(summary, rows, args.tables_dir)
+    narrative_path = args.tables_dir / "findings_narrative.md"
+    narrative_path.write_text(narrative, encoding="utf-8")
+    print(f"Wrote narrative to {narrative_path}")
 
     print(f"Wrote figures to {args.figures_dir}/")
     print(f"Wrote tables  to {args.tables_dir}/")

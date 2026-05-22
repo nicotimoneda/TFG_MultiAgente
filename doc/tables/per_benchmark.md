@@ -1,4 +1,4 @@
 | Configuración | HE |
 |---|---:|
 | Baseline | 80.08% |
-| Sequential | 55.56% |
+| Sequential | 72.22% |
