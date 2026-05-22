@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-experiments = ["rich>=13.0", "tqdm>=4.65"]
+experiments = ["rich>=13.0", "tqdm>=4.65", "matplotlib>=3.8"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

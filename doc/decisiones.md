@@ -333,3 +333,95 @@ automáticamente la variabilidad de muestreo del modelo.
   (configuración, problema). Esto permite distinguir entre problemas
   resueltos de forma robusta y problemas resueltos de forma
   intermitente.
+
+---
+
+## S7 — Ablaciones de rol, pipeline de análisis y métrica de adherencia
+
+**Fecha.** 2026-05-22.
+
+**Contexto.** Tras cerrar S1–S6, al cotejar el código con la **Propuesta
+TFG** (PROJENER.AI, modelos propuestos 1–5) se identifican tres compromisos
+de la propuesta que aún no estaban operacionalizados en el experimento:
+
+1. *"Análisis de qué combinaciones de roles aportan más valor (¿el reviewer
+   mejora la calidad? ¿el tester encuentra bugs que el developer no ve?)"*
+   No existían configuraciones que **suprimieran un rol** para aislar su
+   contribución; sólo se comparaba el pipeline completo contra el baseline
+   monolítico.
+2. *"Comparativa rigurosa cuantitativa de coste y calidad."* Hasta ahora
+   los CSV se inspeccionaban a mano. Faltaba una capa que produjera figuras
+   y tablas listas para la memoria.
+3. *"Protocolo de comunicación que reduce >40% las alucinaciones vs.
+   conversación libre."* No había métrica que cuantificara la adherencia
+   al protocolo estructurado (fences `python`, PRD/design no vacíos).
+
+A lo anterior se suma un feedback explícito del tutor: la memoria debe
+contener **más figuras y tablas** y **no incluir referencias al final de
+cada capítulo** — sólo una bibliografía global al cierre.
+
+**Alternativas evaluadas.**
+
+1. **Reabrir el alcance experimental:** añadir benchmarks adicionales
+   (SWE-bench, DevBench, ClassEval, APPS) prometidos en la propuesta.
+   Descartado por presupuesto de cómputo: el run completo de 7 B sobre
+   HumanEval + MBPP ya es de orden de horas-CPU; añadir SWE-bench cambiaría
+   la escala a días-GPU.
+2. **Operacionalizar in situ los tres compromisos pendientes:**
+   ablaciones de rol, pipeline de análisis y métrica de adherencia, dentro
+   del banco actual (HumanEval + MBPP). Adoptada.
+
+**Justificación de la decisión.** Cerrar los compromisos analíticos de la
+propuesta sobre el banco ya cubierto es más informativo —y honesto— que
+ampliar el alcance hacia benchmarks que no podrán ejecutarse antes de la
+entrega. Las tres piezas son aditivas, no destructivas: cada una se puede
+re-correr sobre los CSV existentes sin invalidar lo ya completado.
+
+**Entregables.**
+
+- `src/graph/ablation_graphs.py` — tres variantes nuevas (`no_pm`,
+  `no_architect`, `no_reviewer`) que comparten el `AgentState`, los
+  agentes y el sandbox del pipeline secuencial. Cada variante elimina
+  exactamente un rol y semilla el campo del rol ausente con el artefacto
+  inmediatamente anterior, manteniendo válidas las plantillas de prompt
+  de los roles restantes.
+- `experiments/run_experiments.py` — extensión del registro de
+  configuraciones para incluir las tres ablaciones, con CSV propio por
+  variante; el resto del runner (resume, dashboard, error log) funciona
+  sin cambios.
+- `experiments/cache/mbpp.json` — caché local de 200 problemas MBPP,
+  pre-construida para que el run pueda reanudarse con `--benchmarks
+  humaneval,mbpp` sin tocar HuggingFace.
+- `experiments/analyze_results.py` — post-procesador de todos los
+  `*_results.csv`. Calcula pass@1, pass@3 (estimador insesgado de Chen
+  et al. 2021), tokens medios, latencia mediana y media, y número medio
+  de revisiones. Genera cuatro figuras (`pass_at_1.png`,
+  `cost_quality_pareto.png`, `latency_box.png`,
+  `revision_distribution.png`) y tres tablas (`summary.md`,
+  `summary.tex`, `per_benchmark.md`). Tolerante a datos parciales: se
+  re-ejecuta mientras el experimento sigue en marcha.
+- `experiments/adherence_metric.py` — métrica post-hoc de adherencia al
+  protocolo estructurado: cuenta, por configuración, cuántas ejecuciones
+  emitieron una advertencia de fence `python` ausente (señal directa
+  de hallucinación de formato). Sólo lee el log y los CSV; no re-invoca
+  el LLM.
+
+**Implicaciones para la memoria.**
+
+- El capítulo de **resultados** puede ahora ilustrarse con figuras y
+  tablas reproducibles directamente desde `experiments/analyze_results.py`
+  cada vez que avance el run. Esto responde al feedback del tutor sobre
+  densidad visual.
+- La sección de **discusión** puede contrastar el pipeline secuencial
+  completo contra cada ablación para responder, con datos, a las
+  preguntas de la propuesta sobre qué rol aporta más a la calidad final.
+- La sección que defiende el protocolo estructurado de comunicación
+  pasa a poder citar un número concreto de adherencia, en lugar de
+  apoyarse sólo en argumento cualitativo.
+- Las referencias bibliográficas no deben aparecer al final de cada
+  capítulo; las citas seguirán claves dentro del cuerpo, pero la lista
+  bibliográfica se consolida una sola vez al final del documento.
+
+**Coste.** Cero impacto en el run en curso (las ablaciones se ejecutarán
+en una segunda pasada tras el primer barrido sobre baseline + sequential +
+self_reflection). Los analizadores son post-hoc y no consumen tokens.

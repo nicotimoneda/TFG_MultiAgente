@@ -1,0 +1,14 @@
+{
+  "baseline": {
+    "total_runs": 492,
+    "runs_with_structural_warning": 0,
+    "total_structural_warnings": 0,
+    "adherence_rate": 1.0
+  },
+  "sequential": {
+    "total_runs": 6,
+    "runs_with_structural_warning": 0,
+    "total_structural_warnings": 0,
+    "adherence_rate": 1.0
+  }
+}

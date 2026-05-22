@@ -120,6 +120,8 @@ EOF
 | S4     | Done     | Experiment runner, dashboard, quick-check script  |
 | S5     | Done     | Cerebras backend, evalplus harness fix            |
 | S6     | Done     | Ollama backend, Reviewer verdict from tests, HumanEval prompt prepend |
+| S7     | Done     | Role ablations (no_pm / no_architect / no_reviewer), MBPP cache, analysis + figures pipeline, structural-adherence metric, bootstrap CIs |
+| S8     | Done     | Memoria chapters 5–8 written, ClassEval loader, SWE-bench Lite scaffolding, bibliography centralised (no chapter-level refs), README rewritten |
 
 ## S2 — What was delivered
 
@@ -179,3 +181,39 @@ revision_count, timestamp, model, error):
 - `experiments/results/self_reflection_r1_results.csv`
 - `experiments/results/self_reflection_r2_results.csv`
 - `experiments/results/self_reflection_r3_results.csv`
+- `experiments/results/ablation_no_pm_results.csv`
+- `experiments/results/ablation_no_architect_results.csv`
+- `experiments/results/ablation_no_reviewer_results.csv`
+
+## S7 — What was delivered
+
+- `src/graph/ablation_graphs.py` — three role-ablation variants (`no_pm`,
+  `no_architect`, `no_reviewer`) sharing the `AgentState`, agents and sandbox
+  with the full sequential pipeline. Each variant removes exactly one role
+  and seeds the missing-role field from the previous artefact so the
+  remaining agents' prompts stay valid.
+- `experiments/run_experiments.py` — config registry extended with the
+  three ablations; per-variant CSV; resume, dashboard and error log
+  unchanged.
+- `experiments/cache/mbpp.json` — local cache of 200 MBPP problems so
+  resuming with `--benchmarks humaneval,mbpp` is offline-capable.
+- `experiments/analyze_results.py` — post-processor over all
+  `*_results.csv`. Computes pass@1 (with 95% percentile-bootstrap CI),
+  pass@3 (Chen et al. 2021 unbiased estimator), token cost, latency,
+  revision-count distribution. Emits `figures/pass_at_1.png`,
+  `figures/cost_quality_pareto.png`, `figures/latency_box.png`,
+  `figures/revision_distribution.png`, and Markdown + LaTeX tables under
+  `doc/tables/`. Tolerant to partial data — re-run while the experiment
+  is still in flight.
+- `experiments/adherence_metric.py` — post-hoc metric that counts, per
+  configuration, how many runs emitted a malformed structured artefact
+  (missing `python` fence). Operationalises the propuesta's claim that
+  the structured artefact protocol reduces hallucinations. Read-only over
+  the log + CSVs, no LLM calls.
+
+## Reproduce the analysis any time
+
+```bash
+python experiments/analyze_results.py      # figures + tables
+python experiments/adherence_metric.py     # adherence summary
+```

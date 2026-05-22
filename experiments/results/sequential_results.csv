@@ -1,0 +1,11 @@
+benchmark,problem_id,config,seed,pass_all_tests,test_pass_rate,tokens_input,tokens_output,latency_seconds,revision_count,timestamp,model,error
+HE,HumanEval/0,sequential,42,False,0.0,9560,2125,276.1626,0,2026-05-22T16:37:03.757209+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/0,sequential,123,False,0.0,9373,2002,256.4805,0,2026-05-22T16:41:39.930665+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/0,sequential,456,False,0.0,9244,1420,238.4882,0,2026-05-22T16:45:56.425994+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/1,sequential,42,False,0.0,8999,2204,326.8419,0,2026-05-22T16:49:54.929335+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/1,sequential,123,True,1.0,8795,2169,286.3718,0,2026-05-22T16:55:21.783964+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/1,sequential,456,True,1.0,8553,1332,186.6394,0,2026-05-22T17:11:03.768906+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/2,sequential,42,True,1.0,9789,2043,238.1191,0,2026-05-22T20:07:55.186767+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/2,sequential,123,True,1.0,9783,2117,187.1599,0,2026-05-22T22:00:49.638476+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/2,sequential,456,True,1.0,10043,2624,303.4443,0,2026-05-22T22:03:56.808809+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/3,sequential,42,True,1.0,10055,2391,337.1226,0,2026-05-22T22:09:00.265446+00:00,qwen2.5-coder:7b-instruct-q4_K_M,

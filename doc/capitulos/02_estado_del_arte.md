@@ -14,20 +14,6 @@ La coordinación entre agentes es el otro problema central. Cuando comparten rec
 
 Estos fundamentos —autonomía, comunicación estructurada, especialización de roles, coordinación emergente— son los que los frameworks modernos de agentes LLM intentan recuperar. Pero el sustrato es completamente distinto: en lugar de agentes con arquitecturas simbólicas y protocolos formales, ahora se trabaja con modelos de lenguaje cuyo comportamiento emerge del preentrenamiento y del prompting. La siguiente sección examina qué significa exactamente que un LLM actúe como agente, y qué propiedades del agente clásico se conservan, cuáles se transforman, y cuáles desaparecen.
 
-### Referencias 
-
-Bratman, M. E. (1987). *Intention, plans, and practical reason*. Harvard University Press.
-
-Cohen, P. R., & Levesque, H. J. (1990). Intention is choice with commitment. *Artificial Intelligence*, *42*(2–3), 213–261. https://doi.org/10.1016/0004-3702(90)90055-5
-
-Rao, A. S., & Georgeff, M. P. (1995). BDI agents: From theory to practice. En *Proceedings of the First International Conference on Multiagent Systems (ICMAS-95)* (pp. 312–319). AAAI Press.
-
-Stone, P., & Veloso, M. (2000). Multiagent systems: A survey from a machine learning perspective. *Autonomous Robots*, *8*(3), 345–383. https://doi.org/10.1023/A:1008942012299
-
-Wooldridge, M. (2009). *An introduction to multiagent systems* (2nd ed.). Wiley.
-
-Wooldridge, M., & Jennings, N. R. (1995). Intelligent agents: Theory and practice. *The Knowledge Engineering Review*, *10*(2), 115–152. https://doi.org/10.1017/S0269888900008122
-
 ## 2.2. Modelos de Lenguaje de Gran Tamaño como agentes
 
 Los modelos de lenguaje de gran tamaño (LLM) surgieron inicialmente como sistemas
@@ -78,15 +64,6 @@ construyen los sistemas multi-agente modernos. La pregunta que se abre de inmedi
 es cómo coordinar múltiples instancias de estos agentes de forma que cooperen en la
 resolución de tareas que ninguno podría abordar individualmente; ese es el objeto de
 los frameworks que se examinan en la siguiente subsección.
-
-### Referencias
- 
-- Schick, T., Dwivedi-Yu, J., Dessì, R., Raileanu, R., Lomeli, M., Zettlemoyer, L., Cancedda, N. y Scialom, T. (2023). Toolformer: Language Models Can Teach Themselves to Use Tools. *Advances in Neural Information Processing Systems*, 36.
-- Shinn, N., Cassano, F., Gopinath, A., Narasimhan, K. y Yao, S. (2023). Reflexion: Language Agents with Verbal Reinforcement Learning. *Advances in Neural Information Processing Systems*, 36.
-- Wang, L., Ma, C., Feng, X., Zhang, Z., Yang, H., Zhang, J., ... y Wen, J. (2024). A Survey on Large Language Model based Autonomous Agents. *Frontiers of Computer Science*, 18(6), 186345.
-- Wei, J., Wang, X., Schuurmans, D., Bosma, M., Ichter, B., Xia, F., Chi, E., Le, Q. y Zhou, D. (2022). Chain-of-Thought Prompting Elicits Reasoning in Large Language Models. *Advances in Neural Information Processing Systems*, 35, 24824–24837.
-- Xi, Z., Chen, W., Guo, X., He, W., Ding, Y., Hong, B., ... et al. (2023). The Rise and Potential of Large Language Model Based Agents: A Survey. *arXiv preprint arXiv:2309.07864*.
-- Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K. y Cao, Y. (2023). ReAct: Synergizing Reasoning and Acting in Language Models. *International Conference on Learning Representations*.
 
 ## 2.3. Frameworks multi-agente basados en LLM
 
@@ -155,22 +132,6 @@ teórica se examina en la subsección 2.6. Antes, conviene revisar el estado del
 en generación automática de código, dado que esa es la capacidad central que los
 agentes del sistema deben ejercer.
 
-### Referencias
-
-- Hong, S., Zhuge, M., Chen, J., Zheng, X., Cheng, Y., Zhang, C., ... y
-  Schmidhuber, J. (2024). MetaGPT: Meta Programming for a Multi-Agent
-  Collaborative Framework. *International Conference on Learning Representations*.
-- Li, G., Hammoud, H., Itani, H., Khizbullin, D. y Ghanem, B. (2023). CAMEL:
-  Communicating Agents for "Mind" Exploration of Large Language Model Society.
-  *Advances in Neural Information Processing Systems*, 36.
-- Qian, C., Cong, X., Yang, C., Chen, W., Su, Y., Xu, J., Liu, Z. y Sun, M.
-  (2024). Communicative Agents for Software Development. *Proceedings of the
-  62nd Annual Meeting of the Association for Computational Linguistics*,
-  15174–15186.
-- Wu, Q., Bansal, G., Zhang, J., Wu, Y., Li, B., Zhu, E., ... y Wang, C. (2023).
-  AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation.
-  *arXiv preprint arXiv:2308.08155*.
-
 ## 2.4. Generación automática de código con LLMs
 
 La capacidad de los LLM para generar código fuente correcto —no solo
@@ -213,21 +174,6 @@ propuesto en este TFG distribuye la tarea de generación y la de verificación e
 nodos distintos del grafo de orquestación. Los benchmarks que permiten medir esa
 capacidad de forma objetiva se examinan en la subsección siguiente.
 
-### Referencias
-
-- Austin, J., Odena, A., Nye, M., Bosma, M., Michalewski, H., Dohan, D.,
-  Jiang, E., Cai, C., Terry, M., Le, Q. y Sutton, C. (2021). Program Synthesis
-  with Large Language Models. *arXiv preprint arXiv:2108.07732*.
-- Chen, M., Tworek, J., Jun, H., Yuan, Q., Pinto, H. P. D. O., Kaplan, J., ...
-  y Zaremba, W. (2021). Evaluating Large Language Models Trained on Code.
-  *arXiv preprint arXiv:2107.03374*.
-- Li, Y., Choi, D., Chung, J., Kushman, N., Schrittwieser, J., Leblond, R., ...
-  y Vinyals, O. (2022). Competition-Level Code Generation with AlphaCode.
-  *Science*, 378(6624), 1092–1097.
-- Rozière, B., Gehring, J., Gloeckle, F., Sootla, S., Gat, I., Tan, X. E., ...
-  y Synnaeve, G. (2023). Code Llama: Open Foundation Models for Code.
-  *arXiv preprint arXiv:2308.12950*.
-
 ## 2.5. Benchmarks de evaluación de generación de código
 
 Medir si un modelo genera código correcto requiere algo más que comprobar si
@@ -269,21 +215,6 @@ puede mejorar la tasa de éxito. Por ese motivo, SWE-bench es el benchmark de
 referencia en la evaluación del sistema. Los mecanismos de orquestación que hacen
 posible esa distribución se examinan en la subsección siguiente.
 
-### Referencias
-
-- Austin, J., Odena, A., Nye, M., Bosma, M., Michalewski, H., Dohan, D., ...
-  y Sutton, C. (2021). Program Synthesis with Large Language Models. *arXiv
-  preprint arXiv:2108.07732*.
-- Chen, M., Tworek, J., Jun, H., Yuan, Q., Pinto, H. P. D. O., Kaplan, J., ...
-  y Zaremba, W. (2021). Evaluating Large Language Models Trained on Code.
-  *arXiv preprint arXiv:2107.03374*.
-- Jiménez, C. E., Yang, J., Wettig, A., Yao, S., Pei, K., Press, O. y
-  Narasimhan, K. (2024). SWE-bench: Can Language Models Resolve Real-World
-  GitHub Issues? *International Conference on Learning Representations*.
-- Liu, J., Xia, C. S., Wang, Y. y Zhang, L. (2023). Is Your Code Generated by
-  ChatGPT Really Correct? Rigorous Evaluation of Large Language Models for Code.
-  *Advances in Neural Information Processing Systems*, 36.
-
 ## 2.6. Orquestación basada en grafos de estado
 
 Los frameworks descritos en la sección 2.3 comparten un problema de diseño: el
@@ -316,13 +247,6 @@ diferencia es que en LangGraph ese mecanismo no es externo al sistema sino parte
 de su definición formal. Cómo este modelo se articula con el resto de elementos
 revisados en el capítulo es lo que sintetiza la sección siguiente.
 
-### Referencias
-
-- LangChain Inc. (2024). *LangGraph: Build Stateful, Multi-Actor Applications
-  with LLMs*. https://github.com/langchain-ai/langgraph
-- Wooldridge, M. (2009). *An Introduction to MultiAgent Systems* (2.ª ed.).
-  Wiley.
-
 ## 2.7. Síntesis y posicionamiento del trabajo
 
 La revisión de este capítulo recorre un arco que va desde la definición clásica
@@ -348,8 +272,3 @@ El objetivo no es proponer una arquitectura sin precedentes, sino estudiar de
 forma controlada si la orquestación mediante grafos de estado con roles
 especializados produce mejoras medibles sobre un agente único en tareas reales de
 ingeniería de software. El capítulo siguiente describe ese diseño.
-
-### Referencias
-
-- Wooldridge, M. y Jennings, N. R. (1995). Intelligent Agents: Theory and
-  Practice. *The Knowledge Engineering Review*, 10(2), 115–152.

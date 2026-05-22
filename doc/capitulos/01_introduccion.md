@@ -73,9 +73,16 @@ monolítico.
 Las contribuciones concretas del trabajo son una arquitectura de orquestación
 multi-agente orientada a ingeniería de software con definición explícita de roles,
 estado compartido y flujo de control condicional; una implementación funcional en
-LangGraph que puede ser reproducida y extendida; y un análisis empírico del
-trade-off entre calidad de la solución y coste computacional en sistemas
-multi-agente para generación de código.
+LangGraph que puede ser reproducida y extendida; un conjunto de variantes de
+ablación que aíslan empíricamente la contribución de cada rol al rendimiento
+global del pipeline; una métrica de adherencia estructural que operacionaliza
+la afirmación —recurrente en la literatura— de que el protocolo de comunicación
+basado en artefactos reduce alucinaciones respecto a la conversación libre; y
+un análisis empírico del trade-off entre calidad de la solución y coste
+computacional en sistemas multi-agente para generación de código, junto con un
+banco experimental resumible y un pipeline de análisis automático cuya salida
+—figuras, tablas y tests pareados— constituye un producto reproducible del
+estudio.
 
 ## 1.4. Estructura del documento
 
@@ -89,4 +96,6 @@ incluyendo la definición de roles, el grafo de estado y las herramientas dispon
 para cada agente. El capítulo 6 presenta los experimentos realizados. El capítulo 7
 analiza los resultados y discute sus implicaciones respecto a las hipótesis
 formuladas. El capítulo 8 recoge las conclusiones y propone líneas de investigación
-futura.
+futura. El Anexo A reproduce verbatim los prompts de sistema y las plantillas
+de prompt de usuario de cada agente, en cumplimiento del criterio de
+reproducibilidad declarado en el capítulo 3.

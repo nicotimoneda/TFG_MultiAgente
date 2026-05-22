@@ -64,6 +64,9 @@ _CONFIG_SPECS: list[tuple[str, str, int, Path]] = [
     ("self_reflection_r1","self_reflection",  1, _RESULTS_DIR / "self_reflection_r1_results.csv"),
     ("self_reflection_r2","self_reflection",  2, _RESULTS_DIR / "self_reflection_r2_results.csv"),
     ("self_reflection_r3","self_reflection",  3, _RESULTS_DIR / "self_reflection_r3_results.csv"),
+    ("ablation_no_pm",        "ablation_no_pm",        0, _RESULTS_DIR / "ablation_no_pm_results.csv"),
+    ("ablation_no_architect", "ablation_no_architect", 0, _RESULTS_DIR / "ablation_no_architect_results.csv"),
+    ("ablation_no_reviewer",  "ablation_no_reviewer",  0, _RESULTS_DIR / "ablation_no_reviewer_results.csv"),
 ]
 
 _CSV_FIELDS = [
@@ -242,6 +245,10 @@ def _run_problem(
     elif runner_config == "sequential":
         from src.graph.sequential_graph import run_sequential  # type: ignore
         return run_sequential(problem, model_name)  # type: ignore[return-value]
+    elif runner_config.startswith("ablation_"):
+        from src.graph.ablation_graphs import run_ablation  # type: ignore
+        variant = runner_config[len("ablation_"):]
+        return run_ablation(variant, problem, model_name)  # type: ignore[return-value]
     else:
         from src.graph.self_reflection_graph import run_self_reflection  # type: ignore
         return run_self_reflection(problem, model_name, max_revisions=max_revisions)  # type: ignore[return-value]
@@ -284,7 +291,8 @@ def _execute_run(
         )
 
         # For sequential/self_reflection, QA already ran the sandbox.
-        if runner_config in ("sequential", "self_reflection") and state.get("test_results"):  # type: ignore[union-attr]
+        _qa_configs = ("sequential", "self_reflection", "ablation_no_pm", "ablation_no_architect", "ablation_no_reviewer")
+        if runner_config in _qa_configs and state.get("test_results"):  # type: ignore[union-attr]
             raw = {k: v for k, v in state["test_results"].items() if k != "qa_summary"}  # type: ignore[index]
             test_results = raw
         else:
