@@ -39,16 +39,18 @@ def load_humaneval() -> list[dict]:
 
     dataset = load_dataset(_HF_DATASET, split=_HF_SPLIT)
 
-    problems: list[dict] = [
-        {
-            "task_id": row["task_id"],
-            "prompt": row["prompt"],
-            "entry_point": row["entry_point"],
-            "test": row["test"],
-            "canonical_solution": row["canonical_solution"],
-        }
-        for row in dataset
-    ]
+    problems: list[dict] = []
+    for raw in dataset:
+        row: dict = dict(raw)  # type: ignore[arg-type]
+        problems.append(
+            {
+                "task_id": row["task_id"],
+                "prompt": row["prompt"],
+                "entry_point": row["entry_point"],
+                "test": row["test"],
+                "canonical_solution": row["canonical_solution"],
+            }
+        )
 
     _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
     with _CACHE_PATH.open("w", encoding="utf-8") as fh:

@@ -13,6 +13,7 @@ import os
 
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
+from pydantic import SecretStr
 
 
 _DEFAULT_MODELS = {
@@ -45,7 +46,7 @@ def get_llm_client(
         base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
         return ChatOpenAI(
             base_url=base_url,
-            api_key="ollama",
+            api_key=SecretStr("ollama"),
             model=model,
             temperature=temperature,
         )
@@ -60,7 +61,7 @@ def get_llm_client(
             )
         return ChatOpenAI(
             base_url="https://api.cerebras.ai/v1",
-            api_key=api_key,
+            api_key=SecretStr(api_key),
             model=model,
             temperature=temperature,
         )

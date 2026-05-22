@@ -67,6 +67,7 @@ _CONFIG_SPECS: list[tuple[str, str, int, Path]] = [
     ("ablation_no_pm",        "ablation_no_pm",        0, _RESULTS_DIR / "ablation_no_pm_results.csv"),
     ("ablation_no_architect", "ablation_no_architect", 0, _RESULTS_DIR / "ablation_no_architect_results.csv"),
     ("ablation_no_reviewer",  "ablation_no_reviewer",  0, _RESULTS_DIR / "ablation_no_reviewer_results.csv"),
+    ("classeval_sequential",  "classeval_sequential",  0, _RESULTS_DIR / "classeval_sequential_results.csv"),
 ]
 
 _CSV_FIELDS = [
@@ -249,6 +250,9 @@ def _run_problem(
         from src.graph.ablation_graphs import run_ablation  # type: ignore
         variant = runner_config[len("ablation_"):]
         return run_ablation(variant, problem, model_name)  # type: ignore[return-value]
+    elif runner_config == "classeval_sequential":
+        from src.graph.classeval_graph import run_classeval_sequential  # type: ignore
+        return run_classeval_sequential(problem, model_name)  # type: ignore[return-value]
     else:
         from src.graph.self_reflection_graph import run_self_reflection  # type: ignore
         return run_self_reflection(problem, model_name, max_revisions=max_revisions)  # type: ignore[return-value]
@@ -291,7 +295,11 @@ def _execute_run(
         )
 
         # For sequential/self_reflection, QA already ran the sandbox.
-        _qa_configs = ("sequential", "self_reflection", "ablation_no_pm", "ablation_no_architect", "ablation_no_reviewer")
+        _qa_configs = (
+            "sequential", "self_reflection",
+            "ablation_no_pm", "ablation_no_architect", "ablation_no_reviewer",
+            "classeval_sequential",
+        )
         if runner_config in _qa_configs and state.get("test_results"):  # type: ignore[union-attr]
             raw = {k: v for k, v in state["test_results"].items() if k != "qa_summary"}  # type: ignore[index]
             test_results = raw
@@ -416,6 +424,10 @@ def main() -> None:
     if "mbpp" in requested_benchmarks:
         problems_by_benchmark["mbpp"] = load_mbpp(200)
         logger.info("Loaded %d MBPP problems", len(problems_by_benchmark["mbpp"]))
+    if "classeval" in requested_benchmarks:
+        from src.evaluation.classeval_loader import load_classeval  # type: ignore
+        problems_by_benchmark["classeval"] = load_classeval()
+        logger.info("Loaded %d ClassEval problems", len(problems_by_benchmark["classeval"]))
 
     # Build full task list, excluding already-completed runs
     writers: dict[str, _CsvWriter] = {}
@@ -427,7 +439,7 @@ def main() -> None:
         writers[config_key] = writer
 
         for bmark, problems in problems_by_benchmark.items():
-            bmark_label = "HE" if bmark == "humaneval" else "MBPP"
+            bmark_label = {"humaneval": "HE", "mbpp": "MBPP", "classeval": "CE"}.get(bmark, bmark.upper())
             for problem in problems:
                 task_id = problem["task_id"]
                 for seed in seeds:
