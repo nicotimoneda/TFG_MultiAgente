@@ -59,7 +59,12 @@ _CONFIGS: list[tuple[str, str, int]] = [
 
 _SEED = 42
 _OUT_CSV = Path("experiments/results/quick_check.csv")
-_MODEL = "qwen-3-235b-a22b-instruct-2507"
+_BACKEND = os.getenv("LLM_BACKEND", "cerebras").lower()
+_DEFAULT_MODELS = {
+    "cerebras": "qwen-3-235b-a22b-instruct-2507",
+    "ollama": "qwen2.5-coder:7b-instruct-q4_K_M",
+}
+_MODEL = os.getenv("LLM_MODEL") or _DEFAULT_MODELS.get(_BACKEND, "")
 
 _CSV_FIELDS = [
     "benchmark", "problem_id", "config", "seed",

@@ -11,15 +11,14 @@ from src.state.schema import AgentState
 logger = logging.getLogger(__name__)
 
 _SYSTEM_PROMPT = (
-    "You are a senior Python code reviewer. You receive: the implemented code, "
+    "You are a senior Python code reviewer. You receive the implemented code, "
     "the test results (pass/fail per test), and the original design document. "
-    "Produce a structured review with:\n"
-    "(1) VERDICT: APPROVE or REQUEST_CHANGES on the first line\n"
-    "(2) Issues found (if any): numbered list, each with severity "
-    "[CRITICAL|MAJOR|MINOR]\n"
-    "(3) Suggested fixes for each issue\n"
-    "If all tests pass and the design is followed: output "
-    "\"VERDICT: APPROVE\" and nothing else."
+    "Produce a concise structured review of the CODE (not the design document):\n"
+    "(1) Issues found: numbered list, each tagged [CRITICAL|MAJOR|MINOR]\n"
+    "(2) Suggested fix for each issue\n"
+    "If everything is fine, say so briefly in one sentence.\n"
+    "Do NOT include any verdict line — the verdict is derived automatically "
+    "from the test results."
 )
 
 _VALID_VERDICTS = {"VERDICT: APPROVE", "VERDICT: REQUEST_CHANGES"}
@@ -71,9 +70,15 @@ class CodeReviewerAgent(BaseAgent):
         )
 
         response_text, in_tok, out_tok = self._call_llm(_SYSTEM_PROMPT, user_prompt)
-        review = response_text.strip()
+        commentary = response_text.strip()
 
-        _parse_verdict(review)  # raises ValueError if verdict line is missing
+        # Verdict is derived deterministically from test results, not asked of
+        # the LLM. Rationale: APPROVE/REQUEST_CHANGES is by definition a
+        # function of the tests, and small local models do not follow strict
+        # format constraints reliably. The LLM's contribution is the
+        # qualitative commentary that feeds the self-reflection revision step.
+        verdict = _derive_verdict(state["test_results"])
+        review = f"{verdict}\n\n{commentary}" if commentary else verdict
 
         return {
             **state,
@@ -87,30 +92,23 @@ class CodeReviewerAgent(BaseAgent):
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _parse_verdict(review_text: str) -> str:
-    """Extract and validate the verdict from the first line of the review.
+def _derive_verdict(test_results: dict) -> str:
+    """Derive the verdict deterministically from test outcomes.
+
+    APPROVE iff every per-test-case entry passed; REQUEST_CHANGES otherwise
+    (including the empty-results case, which we treat as inconclusive).
 
     Args:
-        review_text: Full review string produced by the LLM.
+        test_results: ``state["test_results"]``. May contain a ``qa_summary``
+            metadata entry which is excluded from the pass/fail tally.
 
     Returns:
-        The verdict string: ``"VERDICT: APPROVE"`` or
-        ``"VERDICT: REQUEST_CHANGES"``.
-
-    Raises:
-        ValueError: If the first non-empty line is not a recognised verdict.
+        ``"VERDICT: APPROVE"`` or ``"VERDICT: REQUEST_CHANGES"``.
     """
-    for line in review_text.splitlines():
-        first_line = line.strip()
-        if first_line:
-            if first_line in _VALID_VERDICTS:
-                return first_line
-            raise ValueError(
-                f"Review does not start with a valid verdict line. "
-                f"Got: {first_line!r}. "
-                f"Expected one of: {sorted(_VALID_VERDICTS)}"
-            )
-    raise ValueError("Review text is empty — no verdict found.")
+    per_test = {k: v for k, v in (test_results or {}).items() if k != "qa_summary"}
+    if per_test and all(per_test.values()):
+        return "VERDICT: APPROVE"
+    return "VERDICT: REQUEST_CHANGES"
 
 
 def _format_test_results(test_results: dict) -> str:
