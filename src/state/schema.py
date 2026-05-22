@@ -16,7 +16,7 @@ class AgentState(TypedDict):
 
     # --- Problem identity ---
     problem_id: str
-    """HumanEval/MBPP problem identifier, e.g. 'HumanEval/0'."""
+    """HumanEval problem identifier, e.g. 'HumanEval/0'."""
 
     problem_statement: str
     """Natural language description of the coding problem."""

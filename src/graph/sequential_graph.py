@@ -22,11 +22,11 @@ def build_sequential_graph(model_name: str) -> CompiledGraph:
     """Construct and compile the sequential multi-agent LangGraph.
 
     Node order: pm → architect → developer → qa → reviewer.
-    No conditional edges, no cycles. All agents share the same HuggingFace
+    No conditional edges, no cycles. All agents share the same
     client (and therefore the same model).
 
     Args:
-        model_name: HuggingFace model repo ID
+        model_name: Model identifier (e.g. an Ollama tag or a Cerebras model ID)
             (e.g. ``'meta-llama/Llama-3.1-70B-Instruct'``).
 
     Returns:
@@ -59,7 +59,7 @@ def build_sequential_graph(model_name: str) -> CompiledGraph:
 
 
 def run_sequential(problem: dict, model_name: str) -> AgentState:
-    """Run the sequential graph on a single HumanEval/MBPP problem dict.
+    """Run the sequential graph on a single HumanEval problem dict.
 
     Initialises AgentState from the problem dict, invokes the compiled graph,
     and returns the final state with wall-clock latency set.
@@ -67,7 +67,7 @@ def run_sequential(problem: dict, model_name: str) -> AgentState:
     Args:
         problem: Dict with keys ``task_id``, ``prompt``, ``entry_point``,
                  ``test``, ``canonical_solution`` (HumanEval schema).
-        model_name: Groq model identifier.
+        model_name: Model identifier (Ollama tag or Cerebras model ID).
 
     Returns:
         Final AgentState after all five pipeline stages have completed.

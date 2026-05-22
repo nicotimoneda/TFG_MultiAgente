@@ -22,7 +22,7 @@ class QATesterAgent(BaseAgent):
         """Initialise the QATesterAgent.
 
         Args:
-            model_name: HuggingFace model repo ID (unused but required by BaseAgent).
+            model_name: Model identifier (unused but required by BaseAgent).
             llm_client: BaseChatModel instance (unused but required by BaseAgent).
         """
         super().__init__(
@@ -53,9 +53,19 @@ class QATesterAgent(BaseAgent):
         test_cases = state["test_cases"]
         code = state["code_artifact"]
 
+        # Prepend the original problem prompt (imports + signature context) to
+        # the generated code before execution. This follows the canonical
+        # HumanEval evaluation pattern (Chen et al., 2021), where pass@k is
+        # computed on `prompt + completion`. Without this, a Developer that
+        # omits e.g. `from typing import List` would fail every test even when
+        # the function body is correct — a frequent failure mode with smaller
+        # local models. The duplicated function signature is harmless: Python
+        # binds the last definition.
+        full_code = f"{state['problem_statement']}\n\n{code}" if code else code
+
         raw_results: dict[str, bool] = {}
-        if test_cases and code:
-            raw_results = execute_code_safely(code, test_cases)
+        if test_cases and full_code:
+            raw_results = execute_code_safely(full_code, test_cases)
 
         passed = sum(1 for v in raw_results.values() if v)
         failed = sum(1 for v in raw_results.values() if not v)

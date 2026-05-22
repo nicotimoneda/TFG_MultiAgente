@@ -20,7 +20,7 @@ def build_baseline_graph(model_name: str) -> CompiledGraph:
     Control flow: START → solver → END.
 
     Args:
-        model_name: HuggingFace model repo ID
+        model_name: Model identifier (e.g. an Ollama tag or a Cerebras model ID)
             (e.g. ``'meta-llama/Llama-3.1-70B-Instruct'``).
 
     Returns:
@@ -41,7 +41,7 @@ def build_baseline_graph(model_name: str) -> CompiledGraph:
 
 
 def run_baseline(problem: dict, model_name: str) -> AgentState:
-    """Run the baseline graph on a single HumanEval/MBPP problem dict.
+    """Run the baseline graph on a single HumanEval problem dict.
 
     Initialises AgentState from the problem dict returned by
     ``humaneval_loader.load_humaneval()`` (or equivalent MBPP loader),
@@ -50,7 +50,7 @@ def run_baseline(problem: dict, model_name: str) -> AgentState:
     Args:
         problem: Dict with keys ``task_id``, ``prompt``, ``entry_point``,
                  ``test``, ``canonical_solution`` (HumanEval schema).
-        model_name: Groq model identifier.
+        model_name: Model identifier (Ollama tag or Cerebras model ID).
 
     Returns:
         Final AgentState after the graph has completed.

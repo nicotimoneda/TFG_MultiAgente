@@ -96,7 +96,7 @@ def build_self_reflection_graph(model_name: str, max_revisions: int = 1) -> Comp
     revision_count has not reached max_revisions.
 
     Args:
-        model_name: Groq model identifier (e.g. ``'llama-3.3-70b-versatile'``).
+        model_name: Model identifier (Ollama tag or Cerebras model ID).
         max_revisions: Maximum number of developer revision cycles allowed.
             When this limit is reached the graph terminates regardless of verdict.
 
@@ -153,7 +153,11 @@ def build_self_reflection_graph(model_name: str, max_revisions: int = 1) -> Comp
     builder.add_edge("architect", "developer")
     builder.add_edge("developer", "qa")
     builder.add_edge("qa", "reviewer")
-    builder.add_conditional_edges("reviewer", _reflection_router)
+    builder.add_conditional_edges(
+        "reviewer",
+        _reflection_router,
+        {"developer": "developer", END: END},
+    )
 
     return builder.compile()
 
@@ -163,7 +167,7 @@ def run_self_reflection(
     model_name: str,
     max_revisions: int = 1,
 ) -> AgentState:
-    """Run the self-reflection graph on a single HumanEval/MBPP problem dict.
+    """Run the self-reflection graph on a single HumanEval problem dict.
 
     Initialises AgentState from the problem dict, invokes the compiled graph,
     and returns the final state with wall-clock latency set.
@@ -171,7 +175,7 @@ def run_self_reflection(
     Args:
         problem: Dict with keys ``task_id``, ``prompt``, ``entry_point``,
                  ``test``, ``canonical_solution`` (HumanEval schema).
-        model_name: Groq model identifier.
+        model_name: Model identifier (Ollama tag or Cerebras model ID).
         max_revisions: Maximum number of revision cycles. Defaults to 1.
 
     Returns:

@@ -289,8 +289,12 @@ def _execute_run(
             test_results = raw
         else:
             from src.evaluation.sandbox import execute_code_safely  # type: ignore
+            full_code = (
+                f"{state['problem_statement']}\n\n{state['code_artifact']}"  # type: ignore[index]
+                if state.get("code_artifact") else state.get("code_artifact", "")  # type: ignore[union-attr]
+            )
             test_results = execute_code_safely(
-                code=state["code_artifact"],  # type: ignore[index]
+                code=full_code,
                 test_cases=state["test_cases"],  # type: ignore[index]
             )
 

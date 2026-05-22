@@ -27,7 +27,7 @@ class BaseAgent(ABC):
 
         Args:
             role: Human-readable role label (e.g. 'monolithic_solver').
-            model_name: HuggingFace repo ID of the model being used.
+            model_name: Model identifier (Ollama tag or Cerebras model ID).
             llm_client: Configured LangChain chat model to use for inference.
         """
         self.role = role

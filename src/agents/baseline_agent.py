@@ -33,7 +33,7 @@ class BaselineAgent(BaseAgent):
         """Initialise the baseline agent.
 
         Args:
-            model_name: HuggingFace model repo ID.
+            model_name: Model identifier (e.g. an Ollama tag or a Cerebras model ID).
             llm_client: Configured LangChain chat model.
         """
         super().__init__(

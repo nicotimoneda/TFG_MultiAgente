@@ -27,16 +27,18 @@ _VALID_VERDICTS = {"VERDICT: APPROVE", "VERDICT: REQUEST_CHANGES"}
 class CodeReviewerAgent(BaseAgent):
     """Fifth (final) node in the sequential pipeline: structured code review.
 
-    Reads ``code_artifact``, ``test_results``, and ``design_doc`` from state;
-    writes a review string starting with a verdict line to
-    ``state["review_comments"]``.
+    Reads ``code_artifact``, ``test_results``, and ``design_doc`` from state.
+    Writes a review string to ``state["review_comments"]`` whose first line is
+    a canonical verdict (``VERDICT: APPROVE`` or ``VERDICT: REQUEST_CHANGES``)
+    derived deterministically from the test outcomes, followed by the LLM's
+    qualitative commentary.
     """
 
     def __init__(self, model_name: str, llm_client: BaseChatModel) -> None:
         """Initialise the CodeReviewerAgent.
 
         Args:
-            model_name: HuggingFace model repo ID.
+            model_name: Model identifier (e.g. an Ollama tag or a Cerebras model ID).
             llm_client: Configured LangChain chat model.
         """
         super().__init__(
@@ -46,19 +48,16 @@ class CodeReviewerAgent(BaseAgent):
         )
 
     def run(self, state: AgentState) -> AgentState:
-        """Review the generated code and produce a verdict.
+        """Review the generated code and emit verdict + commentary.
 
         Args:
             state: Current shared agent state. Reads ``code_artifact``,
                 ``test_results``, and ``design_doc``.
 
         Returns:
-            Updated state with ``review_comments``, ``tokens_input``,
-            and ``tokens_output`` populated.
-
-        Raises:
-            ValueError: If the LLM response does not start with a valid verdict
-                line (``VERDICT: APPROVE`` or ``VERDICT: REQUEST_CHANGES``).
+            Updated state with ``review_comments`` (verdict line followed by
+            the LLM commentary), ``tokens_input`` and ``tokens_output``
+            populated.
         """
         test_summary = _format_test_results(state["test_results"])
 

@@ -18,8 +18,12 @@ generation, evaluated on HumanEval and MBPP.
 
 - **Python 3.11+**
 - **LangGraph** — graph orchestration
-- **LangChain / langchain-openai** — LLM interface (backend: HuggingFace → Groq → Together AI → Cerebras)
-- **Cerebras Inference** — inference backend, `llama3.1-70b`, free tier at cloud.cerebras.ai (`CEREBRAS_API_KEY` must be set)
+- **LangChain / langchain-openai** — LLM interface, OpenAI-compatible
+- **Inference backend** — selected at runtime via `LLM_BACKEND`:
+  - `ollama` (default for the full experimental run): local server, model
+    `qwen2.5-coder:7b-instruct-q4_K_M`.
+  - `cerebras`: Cerebras Inference API, model `qwen-3-235b-a22b-instruct-2507`,
+    requires `CEREBRAS_API_KEY`. Retained for cross-checks on subsets.
 - **HuggingFace datasets** — benchmark loading
 - **scipy / numpy / pandas** — metrics and analysis
 
@@ -69,14 +73,24 @@ TFG_MultiAgente/
   computed in log-space to avoid overflow for large n.
 - **QA agent**: deterministic — runs the sandbox, never calls the LLM, so it adds
   zero token cost and is fast.
-- **Reviewer verdict**: parser raises `ValueError` if the first non-empty line is not
-  `VERDICT: APPROVE` or `VERDICT: REQUEST_CHANGES`.
+- **Reviewer verdict**: derived deterministically from `test_results`
+  (APPROVE iff every per-test entry passes); the LLM only produces qualitative
+  commentary (issues + suggested fixes). The verdict line is prepended to
+  `state["review_comments"]` so the `self_reflection` router sees a stable
+  first-line format.
+- **HumanEval prompt prepending**: before sandbox execution, the original
+  problem prompt (which contains the imports and signature context) is
+  concatenated to the generated `code_artifact`, replicating the canonical
+  `prompt + completion` evaluation pattern from Chen et al. (2021, §2.2).
 
 ## Environment variables
 
 | Variable | Purpose |
 |----------|---------|
-| `CEREBRAS_API_KEY` | Cerebras inference API key (required — free at cloud.cerebras.ai, no credit card) |
+| `LLM_BACKEND` | `ollama` (default for the full run) or `cerebras` |
+| `LLM_MODEL` | Optional override for the per-backend default model |
+| `OLLAMA_BASE_URL` | Defaults to `http://localhost:11434/v1` |
+| `CEREBRAS_API_KEY` | Required only when `LLM_BACKEND=cerebras` |
 
 ## Running an evaluation
 
@@ -87,11 +101,11 @@ source .venv/bin/activate
 # Install / update dependencies
 pip install -e .
 
-# Quick smoke test — sequential pipeline, 1 problem
-python - <<'EOF'
+# Quick smoke test — sequential pipeline, 1 problem (local backend)
+LLM_BACKEND=ollama python - <<'EOF'
 from src.evaluation.humaneval_loader import get_problem
 from src.graph.sequential_graph import run_sequential
-state = run_sequential(get_problem("HumanEval/1"), "llama-3.3-70b-versatile")
+state = run_sequential(get_problem("HumanEval/1"), "qwen2.5-coder:7b-instruct-q4_K_M")
 print(state["review_comments"].split("\n")[0])
 EOF
 ```
@@ -104,6 +118,8 @@ EOF
 | S2     | Done     | Sequential multi-agent pipeline (5 roles)         |
 | S3     | Done     | Self-reflection loop + comparative analysis       |
 | S4     | Done     | Experiment runner, dashboard, quick-check script  |
+| S5     | Done     | Cerebras backend, evalplus harness fix            |
+| S6     | Done     | Ollama backend, Reviewer verdict from tests, HumanEval prompt prepend |
 
 ## S2 — What was delivered
 

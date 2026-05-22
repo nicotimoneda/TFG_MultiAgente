@@ -86,29 +86,42 @@ que permite cambiar el backend sin modificar el código de los agentes.
 tooling más completo para la evaluación de benchmarks de código: ejecutores de
 pruebas, entornos sandbox y librerías de análisis estadístico.
 
-**Backend LLM** — Los experimentos utilizan modelos de código abierto servidos a
-través de la API de Groq, concretamente Llama 3.3 70B y Qwen 2.5 Coder. El uso
-de modelos abiertos cumple dos funciones: la reproducibilidad —cualquier
-investigador puede ejecutar los mismos experimentos accediendo a los mismos pesos
-de modelo— y el control de costes, que permite ejecutar múltiples seeds y
-configuraciones sin restricciones económicas que distorsionen el diseño
-experimental.
+**Backend LLM** — Los experimentos finales utilizan un servidor local de
+inferencia mediante Ollama, ejecutando el modelo Qwen 2.5 Coder 7B Instruct con
+cuantización Q4_K_M. El despliegue local cumple dos funciones: la
+reproducibilidad —cualquier investigador puede replicar el experimento
+descargando el mismo binario del modelo desde el registro público de Ollama, sin
+depender de las cuotas o de la disponibilidad de un proveedor remoto— y la
+eliminación del coste marginal por inferencia, lo que permite ejecutar múltiples
+réplicas y configuraciones sin restricciones presupuestarias que distorsionen el
+diseño experimental.
+
+El factory de clientes (`src/llm/client_factory.py`) abstrae el backend mediante
+una variable de entorno `LLM_BACKEND ∈ {ollama, cerebras}`, lo que permite
+reejecutar verificaciones cruzadas sobre un subconjunto utilizando un modelo
+mayor (Qwen-3 235B servido por Cerebras Inference) sin modificar el código del
+pipeline. El recorrido completo de proveedores evaluados y los criterios que
+condujeron a la selección final se documentan en el anexo de decisiones
+técnicas.
 
 ## 4.4. Diseño experimental
 
 **Benchmarks seleccionados**
 
-Los experimentos se realizan sobre HumanEval (164 problemas) y un subconjunto de
-200 problemas de MBPP. Ambos benchmarks tienen especificación en lenguaje natural,
-solución verificable mediante pruebas unitarias y uso extendido en la literatura,
-lo que permite comparar los resultados con los de trabajos previos (Chen et al.,
-2021).
+Los experimentos se realizan sobre HumanEval (164 problemas). El benchmark tiene
+especificación en lenguaje natural, solución verificable mediante pruebas
+unitarias y un uso extendido en la literatura, lo que permite comparar los
+resultados con los de trabajos previos (Chen et al., 2021).
 
-SWE-bench se descartó para esta evaluación. Sus problemas requieren reproducir el
-entorno de ejecución de repositorios externos con dependencias variables, lo que
-introduce una complejidad de infraestructura fuera del alcance de este TFG.
-HumanEval y MBPP ofrecen un entorno suficientemente controlado para los objetivos
-del trabajo.
+MBPP, contemplado inicialmente, se descarta del diseño final por el coste
+temporal de las corridas con backend local de inferencia: dado el solapamiento
+elevado de habilidades evaluadas entre HumanEval y MBPP, incorporar el segundo
+benchmark incrementaría sustancialmente el cómputo total sin aportar
+información cualitativa nueva al estudio comparativo de configuraciones.
+SWE-bench se descartó por motivos de infraestructura: sus problemas requieren
+reproducir el entorno de ejecución de repositorios externos con dependencias
+variables, lo que queda fuera del alcance de este TFG. HumanEval ofrece un
+entorno suficientemente controlado para los objetivos del trabajo.
 
 **Métricas**
 
@@ -118,9 +131,10 @@ de Chen et al. (2021):
 
 $$\text{pass@}k = \mathbb{E}\left[1 - \frac{\binom{n-c}{k}}{\binom{n}{k}}\right]$$
 
-donde n es el número de muestras generadas por problema, c el número de soluciones
-correctas y k el número de intentos considerados. En este trabajo se usa n = 10
-y k ∈ {1, 5, 10}.
+donde n es el número de muestras generadas por problema, c el número de
+soluciones correctas y k el número de intentos considerados. En este trabajo
+se usa n = 3 (las tres réplicas del experimento) y k = 1, lo que reduce el
+estimador a pass@1 = c / n, una proporción de réplicas con éxito.
 
 La tasa media de superación de pruebas (average test pass rate) mide, para las
 soluciones que no superan todas las pruebas, qué fracción de ellas sí superan.
@@ -132,16 +146,30 @@ recepción del enunciado hasta la entrega de la solución final.
 
 **Protocolo experimental**
 
-Cada problema se ejecuta con cinco seeds distintas para estimar la varianza de
-los resultados. Las llamadas al modelo se realizan con temperatura 0.2 para las
-configuraciones 1 y 2, y con temperatura 0.4 para la configuración 3, donde una
-mayor diversidad en la generación del Developer puede facilitar la convergencia
-del ciclo de revisión. La ejecución de código se realiza en un sandbox Python con
-timeout de 5 segundos por caso de prueba.
+Cada problema se ejecuta con tres réplicas indexadas por las seeds {42, 123,
+456} para estimar la varianza de los resultados. La inferencia es muestral por
+naturaleza —el parámetro `seed` controla el generador pseudoaleatorio del
+proceso experimental pero no se propaga a la API de inferencia del modelo—,
+por lo que cada réplica constituye una muestra independiente de la
+distribución de salidas del pipeline para ese problema. Las llamadas al modelo
+se realizan con temperatura 0.2 para las configuraciones 1 y 2, y con
+temperatura 0.4 para el agente Developer de la configuración 3, donde una
+mayor diversidad en la generación facilita la convergencia del ciclo de
+revisión. La ejecución de código se realiza en un sandbox Python con timeout
+de 5 segundos por caso de prueba.
 
-Los resultados de cada ejecución se guardan en un fichero CSV estructurado con los
-campos benchmark, problem_id, configuration, seed, pass_all_tests,
-test_pass_rate, tokens_input, tokens_output y latency_seconds.
+Para preservar la metodología canónica de evaluación de HumanEval, el código
+generado por el sistema (`completion`) se concatena con el prompt original del
+problema (`prompt`) antes de su ejecución en el sandbox, replicando el patrón
+`prompt + completion` definido por Chen et al. (2021, §2.2). Esto garantiza
+que las importaciones y la firma de la función estén disponibles para el
+intérprete con independencia de las decisiones del agente Developer sobre qué
+incluir en su salida.
+
+Los resultados de cada ejecución se guardan en un fichero CSV estructurado con
+los campos benchmark, problem_id, configuration, seed, pass_all_tests,
+test_pass_rate, tokens_input, tokens_output, latency_seconds y revision_count
+(para las configuraciones de self-reflection).
 
 **Análisis estadístico**
 
@@ -163,3 +191,17 @@ versiones fijadas para todos los paquetes. Las seeds utilizadas en los
 experimentos se documentan en el fichero de configuración del experimento. El
 entorno de ejecución de pruebas es un proceso Python independiente sin acceso
 a red, con límites de memoria y tiempo configurables vía parámetros.
+
+**Hardware de ejecución**
+
+Toda la corrida experimental se ejecuta sobre un único equipo: un MacBook Air
+con chip Apple M2, 8 núcleos de CPU (4 de rendimiento y 4 de eficiencia), 10
+núcleos de GPU y 16 GB de memoria unificada. La memoria unificada es
+compartida entre CPU y GPU, lo que tras descontar la reserva del sistema
+operativo deja aproximadamente 10–11 GB efectivos para el modelo más el
+caché de claves/valores de la inferencia. Esta restricción de hardware
+determina la elección del modelo —un Qwen 2.5 Coder de 7 B parámetros con
+cuantización Q4_K_M, cuyo consumo en uso se sitúa en torno a 6–7 GB— y se
+documenta porque condiciona la generalización de los resultados: las
+conclusiones del estudio se establecen para este modelo concreto y no se
+extrapolan automáticamente a modelos de mayor capacidad.

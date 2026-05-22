@@ -6,8 +6,6 @@ import csv
 import logging
 import random
 from pathlib import Path
-from typing import Any
-
 from src.evaluation.sandbox import execute_code_safely
 from src.state.schema import AgentState
 
@@ -45,8 +43,8 @@ def run_evaluation(
 
     Args:
         config: One of ``'baseline'``, ``'sequential'``, ``'self_reflection'``.
-        model_name: Groq model identifier forwarded to the graph.
-        problems: List of problem dicts (HumanEval or MBPP schema).
+        model_name: Model identifier forwarded to the graph.
+        problems: List of problem dicts (HumanEval schema).
         seeds: List of integer seeds; one full pass per seed.
         output_csv: Path to the output CSV file (created or appended to).
         max_revisions: Maximum self-reflection revision cycles (only used when
@@ -108,8 +106,14 @@ def run_evaluation(
                     raw = {k: v for k, v in state["test_results"].items() if k != "qa_summary"}
                     test_results = raw
                 else:
+                    # Canonical HumanEval evaluation: prepend the problem
+                    # prompt (imports + signature) to the completion.
+                    full_code = (
+                        f"{state['problem_statement']}\n\n{state['code_artifact']}"
+                        if state["code_artifact"] else state["code_artifact"]
+                    )
                     test_results = execute_code_safely(
-                        code=state["code_artifact"],
+                        code=full_code,
                         test_cases=state["test_cases"],
                     )
                 pass_all = all(test_results.values()) if test_results else False
