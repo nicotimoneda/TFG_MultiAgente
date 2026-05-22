@@ -1,0 +1,31 @@
+flowchart LR
+    classDef state fill:#fff5d6,stroke:#a07c10,stroke-width:1px
+    classDef agent fill:#d6e6ff,stroke:#103e8a,stroke-width:1px
+    classDef tool fill:#dff6e0,stroke:#1c6b2c,stroke-width:1px
+    classDef io fill:#f8d4d4,stroke:#8a1010,stroke-width:1px
+
+    BM[(Benchmark<br/>HumanEval / MBPP)]:::io
+    STATE{{AgentState<br/>TypedDict compartido}}:::state
+    PM[Product Manager<br/>PRD]:::agent
+    AR[Arquitecto<br/>DesignDoc]:::agent
+    DEV[Developer<br/>CodeArtifact]:::agent
+    QA[QA Tester<br/>TestResults]:::tool
+    REV[Code Reviewer<br/>ReviewComments]:::agent
+    SBX[/Sandbox Python<br/>subproceso, timeout, builtins restringidos/]:::tool
+    CSV[(CSV por config<br/>+ telemetría)]:::io
+
+    BM --> STATE
+    STATE -->|problem_statement| PM
+    PM -->|prd| STATE
+    STATE -->|prd, signature| AR
+    AR -->|design_doc| STATE
+    STATE -->|design_doc, statement| DEV
+    DEV -->|code_artifact| STATE
+    STATE -->|code, test_cases| QA
+    QA -.->|exec| SBX
+    SBX -.->|pass/fail| QA
+    QA -->|test_results| STATE
+    STATE -->|code, tests, design| REV
+    REV -->|review_comments| STATE
+    REV -. revision_count < max .-> DEV
+    STATE -->|telemetría agregada| CSV

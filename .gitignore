@@ -48,3 +48,9 @@ htmlcov/
 
 # UAX institutional documentation (local only)
 Documentación - UAX/
+
+# Generated assemblies — regenerable via scripts/build_memoria.sh
+build/
+
+# Editor metadata
+*.code-workspace

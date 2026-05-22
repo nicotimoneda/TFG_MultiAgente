@@ -145,7 +145,7 @@ EOF
 
 ## S4 — What was delivered
 
-- `experiments/run_experiments.py` — Full experiment runner (9 100 runs: 5 configs × 5 seeds × 364 problems).
+- `experiments/run_experiments.py` — Full experiment runner. Main matrix 2 460 runs (5 configs × 3 seeds × 164 HumanEval problems); extends to 8 configs and MBPP (200) on a second pass.
   Resume-capable (skips completed rows on restart). Writes one CSV per config to `experiments/results/`.
   Fault-tolerant (try/except per run, error column + `experiments/logs/errors.log`).
   Atomic `progress.json` updated after every run. CLI: `--model`, `--configs`, `--benchmarks`, `--seeds`, `--workers`.

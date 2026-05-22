@@ -9,3 +9,7 @@ HE,HumanEval/2,sequential,42,True,1.0,9789,2043,238.1191,0,2026-05-22T20:07:55.1
 HE,HumanEval/2,sequential,123,True,1.0,9783,2117,187.1599,0,2026-05-22T22:00:49.638476+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
 HE,HumanEval/2,sequential,456,True,1.0,10043,2624,303.4443,0,2026-05-22T22:03:56.808809+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
 HE,HumanEval/3,sequential,42,True,1.0,10055,2391,337.1226,0,2026-05-22T22:09:00.265446+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/3,sequential,123,True,1.0,10442,3047,377.0582,0,2026-05-22T22:14:37.397098+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/3,sequential,456,False,0.0,10092,3004,336.5134,0,2026-05-22T22:20:54.477711+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/4,sequential,42,True,1.0,9935,2148,280.6407,0,2026-05-22T22:26:31.006410+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/4,sequential,123,True,1.0,10131,2456,266.1155,0,2026-05-22T22:31:11.661042+00:00,qwen2.5-coder:7b-instruct-q4_K_M,

@@ -52,7 +52,8 @@ observaciones preliminares:
 sobre HumanEval con 280 tokens medios por problema. Cualquier mejora del
 pipeline secuencial deberá superar ese listón con un margen
 estadísticamente distinguible. La amplitud del intervalo de confianza
-bootstrap del baseline, calculado sobre 390 ejecuciones, indica que el
+bootstrap del baseline, calculado sobre las 492 ejecuciones que completan
+la matriz baseline × HumanEval × 3 semillas, indica que el
 test de McNemar dispondrá de potencia suficiente para detectar
 diferencias del orden del 5–10% en pass@1 entre configuraciones cuando
 todas las configuraciones acumulen un volumen similar de ejecuciones.
