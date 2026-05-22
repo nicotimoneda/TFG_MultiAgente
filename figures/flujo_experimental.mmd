@@ -1,0 +1,28 @@
+flowchart TB
+    classDef data fill:#fff5d6,stroke:#a07c10
+    classDef proc fill:#d6e6ff,stroke:#103e8a
+    classDef out fill:#dff6e0,stroke:#1c6b2c
+    classDef analysis fill:#f0d6ff,stroke:#5a1c6b
+
+    BM[(Benchmark<br/>HumanEval / MBPP / ClassEval)]:::data
+    CONFIG[/Configuración<br/>baseline / sequential / SR_r1..r3 / ablations/]:::proc
+    SEED[/Semilla<br/>42 / 123 / 456/]:::proc
+    GRAPH{Grafo LangGraph<br/>compilado}:::proc
+    SBX[/Sandbox subproceso<br/>timeout, builtins restringidos/]:::proc
+    CSV[(CSV por config<br/>+ telemetría)]:::out
+    PROG[(progress.json<br/>atómico)]:::out
+    ANALYZE[Analyze_results.py<br/>+ adherence_metric.py]:::analysis
+    FIGS[/Figuras 7.1-7.3/]:::out
+    TABS[/Tablas summary, mcnemar, adherence/]:::out
+    NARR[/findings_narrative.md/]:::out
+
+    BM --> GRAPH
+    CONFIG --> GRAPH
+    SEED --> GRAPH
+    GRAPH --> SBX
+    SBX --> CSV
+    GRAPH --> PROG
+    CSV --> ANALYZE
+    ANALYZE --> FIGS
+    ANALYZE --> TABS
+    ANALYZE --> NARR

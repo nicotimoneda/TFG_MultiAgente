@@ -106,6 +106,21 @@ técnicas.
 
 ## 4.4. Diseño experimental
 
+La figura 4.1 sintetiza el flujo experimental completo. Cada problema del
+benchmark se combina con una configuración del sistema y una semilla
+para producir una ejecución; el resultado pasa por el sandbox y se
+persiste como fila del CSV correspondiente. El pipeline de análisis
+consume los CSV y emite las figuras y tablas que componen el capítulo
+7 junto con el borrador automático de hallazgos.
+
+![Flujo experimental del TFG](figures/flujo_experimental.png)
+
+Figura 4.1. Flujo experimental: del benchmark al análisis. Las cajas
+amarillas son datos, azules procesos del sistema, verdes salidas
+persistidas y moradas el pipeline de análisis post-hoc
+(`figures/flujo_experimental.png`).
+
+
 **Benchmarks seleccionados**
 
 Los experimentos se realizan sobre HumanEval (164 problemas). El benchmark tiene

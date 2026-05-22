@@ -73,7 +73,33 @@ disminuye en problemas de baja complejidad. Se analizará segmentando los
 resultados por categoría de problema y comparando el ratio calidad/coste entre
 configuraciones.
 
-## 3.4. Alcance y limitaciones
+## 3.4. Trazabilidad entre objetivos e hipótesis
+
+La tabla 3.1 sintetiza la relación entre los objetivos específicos
+(OE1–OE7) y las hipótesis (H1–H3). Cada celda marcada indica que el
+cumplimiento del objetivo proporciona evidencia para el contraste de la
+hipótesis correspondiente. El propósito de la matriz es hacer explícito
+qué objetivos quedan estrictamente justificados por la metodología y
+cuáles cubren tareas instrumentales —revisión bibliográfica,
+documentación— que sostienen el trabajo sin contribuir directamente a
+las hipótesis.
+
+| Objetivo | H1 (especialización) | H2 (auto-revisión) | H3 (trade-off) |
+|---|:---:|:---:|:---:|
+| OE1 — Estado del arte | — | — | — |
+| OE2 — Arquitectura multi-agente | ● | ● | ● |
+| OE3 — Baseline monolítico | ● | — | ● |
+| OE4 — Mecanismo de auto-revisión | — | ● | ● |
+| OE5 — Evaluación empírica | ● | ● | ● |
+| OE6 — Análisis cualitativo | ● | ● | ● |
+| OE7 — Reproducibilidad | — | — | — |
+
+Tabla 3.1. Matriz de trazabilidad entre objetivos específicos e
+hipótesis. El símbolo ● indica que el objetivo aporta evidencia directa
+para el contraste de la hipótesis; — indica que la relación es
+instrumental o nula.
+
+## 3.5. Alcance y limitaciones
 
 El trabajo abarca el diseño, implementación y evaluación de tres configuraciones:
 baseline monolítico, sistema multi-agente secuencial y sistema multi-agente con

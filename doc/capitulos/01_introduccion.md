@@ -37,6 +37,22 @@ orquestado mediante un grafo de estado en LangGraph, cuyo rendimiento se compara
 de forma controlada contra un baseline monolítico en los benchmarks estándar
 del campo.
 
+La tabla 1.1 sintetiza las limitaciones del LLM monolítico identificadas
+en esta sección y las contramedidas que ofrece el sistema multi-agente
+propuesto. La tabla anticipa, de forma compacta, el argumento que se
+desarrolla en los capítulos posteriores.
+
+| Limitación del LLM monolítico | Contramedida del sistema multi-agente |
+|---|---|
+| Ventana de contexto finita; no puede mantener simultáneamente requisitos, diseño, código y pruebas | Distribución de responsabilidades entre cinco agentes con artefactos tipados en el estado compartido |
+| No detecta errores en su propia salida | Agente QA Tester con ejecución determinista en sandbox y agente Code Reviewer con veredicto derivado de las pruebas |
+| Sin mecanismo de iteración fundamentada | Bucle condicional Reviewer → Developer parametrizado por `max_revisions` y guiado por evidencia externa |
+| Comunicación en texto libre, sensible a alucinaciones | Protocolo estructurado por artefactos tipados (PRD, design, code, tests, review) |
+| Imposible auditar el flujo de decisión | Grafo LangGraph explícito e inspeccionable que documenta cada transición |
+
+Tabla 1.1. Limitaciones del LLM monolítico y contramedidas del sistema
+propuesto.
+
 ## 1.2. Problema y pregunta de investigación
 
 La pregunta central de este trabajo es si un sistema multi-agente con roles

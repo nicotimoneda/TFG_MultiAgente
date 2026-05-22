@@ -127,10 +127,25 @@ una topología jerárquica con supervisor y un flujo parcialmente estructurado m
 un grafo de estado, lo que permite tanto reproducibilidad como adaptabilidad ante
 tareas imprevistas.
 
-El sustrato tecnológico que hace posible esta combinación es LangGraph, cuya base
-teórica se examina en la subsección 2.6. Antes, conviene revisar el estado del arte
-en generación automática de código, dado que esa es la capacidad central que los
-agentes del sistema deben ejercer.
+La tabla 2.1 sintetiza las características de los cuatro frameworks
+revisados en esta subsección, lo que permite situar el TFG por contraste
+con cada uno de ellos sin necesidad de releer las descripciones en prosa.
+
+| Framework | Topología | Comunicación | Roles fijos | Flujo de control | Determinismo | Estado tipado |
+|---|---|---|---|---|---|---|
+| AutoGen (Wu et al., 2023) | Red sin jerarquía | Conversación libre | No | Dinámico, dependiente del LLM | Bajo | No |
+| CAMEL (Li et al., 2023) | Diádica (2 agentes) | Conversación bilateral | Sí (2) | Lineal | Bajo | No |
+| ChatDev (Qian et al., 2023) | Cascada por fases | Estructurada por fase | Sí (5+) | Lineal (cascada de waterfall) | Medio | Parcial |
+| MetaGPT (Hong et al., 2024) | Jerárquica con supervisor | SOPs estructuradas + artefactos | Sí (5) | Lineal con SOPs | Alto | Sí |
+| **TFG (este trabajo)** | Grafo de estado explícito | Estado compartido tipado | Sí (5) | Lineal + arista condicional | **Alto** | **Sí (TypedDict)** |
+
+Tabla 2.1. Posicionamiento del sistema propuesto frente a los frameworks
+multi-agente más representativos de la literatura.
+
+El sustrato tecnológico que hace posible esta combinación es LangGraph,
+cuya base teórica se examina en la subsección 2.6. Antes, conviene
+revisar el estado del arte en generación automática de código, dado que
+esa es la capacidad central que los agentes del sistema deben ejercer.
 
 ## 2.4. Generación automática de código con LLMs
 
@@ -211,9 +226,29 @@ Ese resultado tiene consecuencias directas para el diseño del sistema propuesto
 en este TFG. Si un agente único no resuelve SWE-bench de forma fiable, la
 hipótesis es que distribuir el trabajo entre agentes especializados —uno que
 localiza el error, otro que propone el parche, otro que verifica la regresión—
-puede mejorar la tasa de éxito. Por ese motivo, SWE-bench es el benchmark de
-referencia en la evaluación del sistema. Los mecanismos de orquestación que hacen
-posible esa distribución se examinan en la subsección siguiente.
+puede mejorar la tasa de éxito.
+
+La tabla 2.2 contrasta los cinco benchmarks más relevantes de la literatura
+en términos de granularidad, cardinalidad y tipo de tarea. Aporta el
+marco de comparación que justifica las decisiones de scope tomadas en el
+capítulo 3.
+
+| Benchmark | Granularidad | Problemas | Verificación | Cardinalidad infra |
+|---|---|---|---|---|
+| HumanEval (Chen et al., 2021) | Función | 164 | Tests unitarios | Sandbox simple |
+| MBPP (Austin et al., 2021) | Función | 974 | Tests unitarios | Sandbox simple |
+| APPS (Hendrycks et al., 2021) | Función | 10 000 | Tests unitarios | Sandbox simple |
+| ClassEval (Du et al., 2023) | Clase completa | 100 | Tests unitarios | Sandbox + imports |
+| SWE-bench (Jiménez et al., 2024) | Proyecto multi-fichero | 2 294 | Suite del repo | Docker por repo |
+
+Tabla 2.2. Comparativa de benchmarks de generación de código. La columna
+"Cardinalidad infra" indica el coste de infraestructura necesario para
+ejecutar la evaluación, que crece desde un sandbox Python aislado hasta
+un harness Docker por instancia.
+
+Los mecanismos de orquestación que hacen posible la distribución del
+trabajo entre agentes especializados se examinan en la subsección
+siguiente.
 
 ## 2.6. Orquestación basada en grafos de estado
 

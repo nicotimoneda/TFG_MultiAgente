@@ -24,6 +24,19 @@ el cache local de MBPP (`experiments/cache/mbpp.json`) como el registro de
 configuraciones del runner están ya preparados para esa pasada, y reincorporar
 benchmarks o configuraciones no obliga a re-ejecutar nada de lo ya completado.
 
+La figura 6.1 reproduce, a nivel del banco experimental, el diagrama
+de flujo de la sección 4.4 (figura 4.1). En este capítulo la figura
+sirve de referencia visual mientras se describen las decisiones de
+configuración que rellenan cada caja del flujo: qué benchmark se
+carga, qué modelo se invoca, qué métricas se computan y dónde aterriza
+cada artefacto.
+
+![Flujo experimental del TFG](figures/flujo_experimental.png)
+
+Figura 6.1. Flujo experimental visto desde el banco: cada caja se
+describe en detalle en las secciones 6.2 a 6.7
+(`figures/flujo_experimental.png`).
+
 ## 6.2. Modelo y backend de inferencia
 
 El experimento final utiliza el modelo Qwen 2.5 Coder 7B Instruct con

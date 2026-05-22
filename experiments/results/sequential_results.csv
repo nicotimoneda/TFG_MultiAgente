@@ -18,3 +18,4 @@ HE,HumanEval/5,sequential,42,True,1.0,9669,2275,361.1767,0,2026-05-22T22:43:39.0
 HE,HumanEval/5,sequential,123,True,1.0,9651,2252,354.8904,0,2026-05-22T22:49:40.248089+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
 HE,HumanEval/5,sequential,456,True,1.0,9118,1553,274.9808,0,2026-05-22T22:55:35.155532+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
 HE,HumanEval/6,sequential,42,True,1.0,5509,1060,199.0721,0,2026-05-22T23:00:10.160698+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/6,sequential,123,True,1.0,5882,1296,219.5393,0,2026-05-22T23:03:29.250899+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
