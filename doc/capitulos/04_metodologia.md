@@ -87,22 +87,28 @@ tooling más completo para la evaluación de benchmarks de código: ejecutores d
 pruebas, entornos sandbox y librerías de análisis estadístico.
 
 **Backend LLM** — Los experimentos finales utilizan un servidor local de
-inferencia mediante Ollama, ejecutando el modelo Qwen 2.5 Coder 7B Instruct con
-cuantización Q4_K_M. El despliegue local cumple dos funciones: la
+inferencia mediante Ollama, ejecutando el modelo Qwen 2.5 Coder 7B Instruct
+con cuantización Q4_K_M. El despliegue local cumple dos funciones: la
 reproducibilidad —cualquier investigador puede replicar el experimento
-descargando el mismo binario del modelo desde el registro público de Ollama, sin
-depender de las cuotas o de la disponibilidad de un proveedor remoto— y la
-eliminación del coste marginal por inferencia, lo que permite ejecutar múltiples
-réplicas y configuraciones sin restricciones presupuestarias que distorsionen el
+descargando el mismo binario del modelo desde el registro público de Ollama,
+sin depender de cuotas o disponibilidad de un proveedor remoto— y la
+eliminación del coste marginal por inferencia, lo que permite ejecutar
+múltiples réplicas sin restricciones presupuestarias que distorsionen el
 diseño experimental.
 
-El factory de clientes (`src/llm/client_factory.py`) abstrae el backend mediante
-una variable de entorno `LLM_BACKEND ∈ {ollama, cerebras}`, lo que permite
-reejecutar verificaciones cruzadas sobre un subconjunto utilizando un modelo
-mayor (Qwen-3 235B servido por Cerebras Inference) sin modificar el código del
-pipeline. El recorrido completo de proveedores evaluados y los criterios que
-condujeron a la selección final se documentan en el anexo de decisiones
-técnicas.
+Durante la fase de planificación del experimento se evaluó como alternativa
+Cerebras Inference, un proveedor de inferencia remoto que ofrece acceso
+gratuito a varios modelos open-weight. La evaluación empírica mostró que
+el rate limit del tier público (~2 requests/minuto efectivos bajo la carga
+real del pipeline multi-agente) no era compatible con la cardinalidad de
+la matriz experimental. La decisión completa, con las alternativas
+medidas y descartadas, se documenta en la entrada S8 del anexo de
+decisiones técnicas.
+
+El factory de clientes (`src/llm/client_factory.py`) abstrae el backend
+mediante la variable de entorno `LLM_BACKEND ∈ {ollama, cerebras}`, lo
+que mantiene abierta la opción de verificación cruzada sobre subconjuntos
+con un proveedor remoto sin tocar la lógica del pipeline.
 
 ## 4.4. Diseño experimental
 
@@ -209,14 +215,17 @@ a red, con límites de memoria y tiempo configurables vía parámetros.
 
 **Hardware de ejecución**
 
-Toda la corrida experimental se ejecuta sobre un único equipo: un MacBook Air
-con chip Apple M2, 8 núcleos de CPU (4 de rendimiento y 4 de eficiencia), 10
-núcleos de GPU y 16 GB de memoria unificada. La memoria unificada es
-compartida entre CPU y GPU, lo que tras descontar la reserva del sistema
-operativo deja aproximadamente 10–11 GB efectivos para el modelo más el
-caché de claves/valores de la inferencia. Esta restricción de hardware
-determina la elección del modelo —un Qwen 2.5 Coder de 7 B parámetros con
-cuantización Q4_K_M, cuyo consumo en uso se sitúa en torno a 6–7 GB— y se
-documenta porque condiciona la generalización de los resultados: las
-conclusiones del estudio se establecen para este modelo concreto y no se
-extrapolan automáticamente a modelos de mayor capacidad.
+Toda la corrida experimental se ejecuta sobre un único equipo: un MacBook
+Air con chip Apple M2, 8 núcleos de CPU (4 de rendimiento y 4 de
+eficiencia), 10 núcleos de GPU y 16 GB de memoria unificada. La memoria
+unificada se comparte entre CPU y GPU, lo que tras descontar la reserva
+del sistema operativo deja aproximadamente 10-11 GB efectivos para el
+modelo más el caché de claves/valores de la inferencia. Esta restricción
+de hardware determina la elección del modelo —un Qwen 2.5 Coder de 7B
+parámetros con cuantización Q4_K_M, cuyo consumo en uso se sitúa en torno
+a 6-7 GB— y determina también el recorte del barrido principal a las tres
+configuraciones más informativas (baseline, sequential, self_reflection
+con `max_revisions=1`), justificado en la entrada S8 del anexo de
+decisiones técnicas. Las conclusiones del estudio se establecen para este
+modelo concreto y no se extrapolan automáticamente a modelos de mayor
+capacidad.

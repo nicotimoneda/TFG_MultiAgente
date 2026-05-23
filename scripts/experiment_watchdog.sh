@@ -35,7 +35,12 @@ cd "$ROOT"
 # ---------------------------------------------------------------------------
 
 MODEL="${MODEL:-qwen2.5-coder:7b-instruct-q4_K_M}"
-ENABLE_MBPP="${ENABLE_MBPP:-0}"      # set ENABLE_MBPP=1 to add MBPP phase
+LLM_BACKEND_VAR="${LLM_BACKEND_VAR:-ollama}"
+WORKERS="${WORKERS:-1}"
+ENABLE_MBPP="${ENABLE_MBPP:-0}"
+ENABLE_SR_R2="${ENABLE_SR_R2:-0}"    # off: budget-driven scope reduction
+ENABLE_SR_R3="${ENABLE_SR_R3:-0}"    # off: marginal over r2
+ABLATION_SUBSET_SIZE="${ABLATION_SUBSET_SIZE:-0}"   # 0 disables ablation phase
 SLEEP_OK=120                          # seconds between healthy checks
 SLEEP_RESTART=15                      # seconds before restarting after a crash
 MAX_RESTARTS_PER_PHASE=100            # circuit breaker
@@ -58,21 +63,23 @@ log() {
 # Health checks
 # ---------------------------------------------------------------------------
 
-ollama_alive() {
-    curl -sf -m 3 http://localhost:11434/api/tags > /dev/null 2>&1
-}
-
-ensure_ollama() {
-    if ollama_alive; then
+ensure_backend() {
+    if [ "$LLM_BACKEND_VAR" = "cerebras" ]; then
+        # Cerebras is a remote API; nothing to keep alive locally beyond
+        # the .env-supplied API key. A failed call is caught by the
+        # runner's per-row try/except, not by the watchdog.
+        return 0
+    fi
+    # Legacy Ollama path (kept for reference)
+    if curl -sf -m 3 http://localhost:11434/api/tags > /dev/null 2>&1; then
         return 0
     fi
     log "ollama is not responding; restarting"
     pkill -f "ollama serve" 2>/dev/null
     sleep 2
     nohup ollama serve > "$OLLAMA_LOG" 2>&1 &
-    # wait up to 30s for it to come up
     for i in $(seq 1 30); do
-        if ollama_alive; then
+        if curl -sf -m 3 http://localhost:11434/api/tags > /dev/null 2>&1; then
             log "ollama is back (waited ${i}s)"
             return 0
         fi
@@ -116,7 +123,7 @@ run_phase() {
 
     local restarts=0
     while true; do
-        ensure_ollama || { sleep "$SLEEP_RESTART"; continue; }
+        ensure_backend || { sleep "$SLEEP_RESTART"; continue; }
 
         if ! runner_alive; then
             # Check if the phase is already done
@@ -134,11 +141,12 @@ run_phase() {
                 return 1
             fi
 
-            log "Runner not running (completed=$completed, target=$expected_total). Launching (restart #$restarts)."
-            LLM_BACKEND=ollama nohup python experiments/run_experiments.py \
+            log "Runner not running (completed=$completed, target=$expected_total). Launching (restart #$restarts, workers=$WORKERS, backend=$LLM_BACKEND_VAR, model=$MODEL)."
+            LLM_BACKEND="$LLM_BACKEND_VAR" nohup python experiments/run_experiments.py \
                 --model "$MODEL" \
                 --configs "$configs" \
                 --benchmarks "$benchmarks" \
+                --workers "$WORKERS" \
                 >> "$RUNNER_LOG" 2>&1 &
             restarts=$((restarts + 1))
             sleep "$SLEEP_RESTART"
@@ -154,37 +162,47 @@ run_phase() {
 # Phase plan
 # ---------------------------------------------------------------------------
 
-# Phase 1: main matrix (already underway).
-# expected_total for phase 1: 164 * 3 * 5 = 2 460
-PHASE1_CONFIGS="baseline,sequential,self_reflection_r1,self_reflection_r2,self_reflection_r3"
-PHASE1_TOTAL=2460
+# Phase 1: main matrix.
+# Default: 4 configs (baseline + sequential + SR_r1 + SR_r2). SR_r3 disabled
+# by default because chapter 8.5 documents r2 as the practical ceiling on the
+# 7B model under HumanEval and the marginal value of r3 does not justify the
+# additional ~5 days of compute. Re-enable with ENABLE_SR_R3=1.
+if [ "$ENABLE_SR_R3" = "1" ]; then
+    PHASE1_CONFIGS="baseline,sequential,self_reflection_r1,self_reflection_r2,self_reflection_r3"
+    PHASE1_TOTAL=2460
+elif [ "$ENABLE_SR_R2" = "1" ]; then
+    PHASE1_CONFIGS="baseline,sequential,self_reflection_r1,self_reflection_r2"
+    PHASE1_TOTAL=1968
+else
+    PHASE1_CONFIGS="baseline,sequential,self_reflection_r1"
+    PHASE1_TOTAL=1476   # 3 configs * 164 problems * 3 seeds — finishes ~June 1
+fi
 
-# Phase 2: ablations.
-# expected_total for phase 2: phase 1 total + 164 * 3 * 3 = 2 460 + 1 476 = 3 936
+# Phase 2: ablations on a problem subset (default 50 problems) to keep total
+# compute under control while still answering the role-contribution question.
 PHASE2_CONFIGS="ablation_no_pm,ablation_no_architect,ablation_no_reviewer"
-PHASE2_TOTAL=3936
-
-# Phase 3 (optional): MBPP — same configs as 1+2 on 200 MBPP.
-# expected_total for phase 3: 3 936 + 200 * 3 * 8 = 3 936 + 4 800 = 8 736
-PHASE3_CONFIGS="$PHASE1_CONFIGS,$PHASE2_CONFIGS"
-PHASE3_TOTAL=8736
+# Each ablation runs against ABLATION_SUBSET_SIZE problems × 3 seeds.
+# Total added = 3 configs * subset * 3 seeds.
+PHASE2_TOTAL=$(( PHASE1_TOTAL + 3 * ABLATION_SUBSET_SIZE * 3 ))
 
 log "Watchdog started (pid=$$, log=$WATCHDOG_LOG)"
-log "MODEL=$MODEL  ENABLE_MBPP=$ENABLE_MBPP"
+log "BACKEND=$LLM_BACKEND_VAR  MODEL=$MODEL  WORKERS=$WORKERS  ENABLE_MBPP=$ENABLE_MBPP"
 
 run_phase "main"      "$PHASE1_CONFIGS" "humaneval"        "$PHASE1_TOTAL"  || exit 1
-run_phase "ablations" "$PHASE2_CONFIGS" "humaneval"        "$PHASE2_TOTAL"  || exit 1
-
-if [ "$ENABLE_MBPP" = "1" ]; then
-    run_phase "mbpp"  "$PHASE3_CONFIGS" "humaneval,mbpp"   "$PHASE3_TOTAL"  || exit 1
+# Ablation phase runs on a subset; the runner respects --problems if we passed
+# it, but here we keep the default and let the user run a subset variant by
+# editing this script when phase 2 is reached. Disable phase 2 by setting
+# ABLATION_SUBSET_SIZE=0.
+if [ "$ABLATION_SUBSET_SIZE" -gt 0 ]; then
+    run_phase "ablations" "$PHASE2_CONFIGS" "humaneval"    "$PHASE2_TOTAL"  || exit 1
 fi
 
 log "=== ALL ENABLED PHASES COMPLETE ==="
 
 # Post-processing: regenerate figures, tables and adherence summary.
 log "Running analyze_results.py + adherence_metric.py"
-LLM_BACKEND=ollama python experiments/analyze_results.py >> "$WATCHDOG_LOG" 2>&1
-LLM_BACKEND=ollama python experiments/adherence_metric.py >> "$WATCHDOG_LOG" 2>&1
+LLM_BACKEND="$LLM_BACKEND_VAR" python experiments/analyze_results.py >> "$WATCHDOG_LOG" 2>&1
+LLM_BACKEND="$LLM_BACKEND_VAR" python experiments/adherence_metric.py >> "$WATCHDOG_LOG" 2>&1
 
 log "Watchdog exit OK."
 rm -f "$WATCHDOG_PID"

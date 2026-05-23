@@ -1,0 +1,12 @@
+{
+  "total": 2460,
+  "completed": 1,
+  "failed": 0,
+  "last_updated": "2026-05-23T11:57:28.239849+00:00",
+  "current": {
+    "benchmark": "HE",
+    "problem_id": "HumanEval/0",
+    "config": "baseline",
+    "seed": 123
+  }
+}

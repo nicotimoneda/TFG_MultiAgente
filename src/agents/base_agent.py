@@ -1,5 +1,7 @@
 """Abstract base class for all agents in the multi-agent system."""
 
+import os
+import threading
 import time
 import logging
 from abc import ABC, abstractmethod
@@ -13,6 +15,28 @@ logger = logging.getLogger(__name__)
 
 _MAX_RETRIES = 3
 _BASE_BACKOFF_SECONDS = 2.0
+
+# Optional global pacing between LLM calls. When the backend imposes a
+# per-minute rate limit (e.g. Cerebras free tier) we space requests apart
+# proactively to avoid 429 responses. The value is read once at import
+# time from the ``LLM_MIN_INTERVAL_S`` environment variable; defaults to
+# zero (no pacing) so the local Ollama path is unaffected.
+_MIN_INTERVAL_S = float(os.getenv("LLM_MIN_INTERVAL_S", "0"))
+_pacing_lock = threading.Lock()
+_last_call_ts: float = 0.0
+
+
+def _pace_request() -> None:
+    """Block until ``_MIN_INTERVAL_S`` seconds have passed since the last call."""
+    global _last_call_ts
+    if _MIN_INTERVAL_S <= 0:
+        return
+    with _pacing_lock:
+        now = time.monotonic()
+        wait = _MIN_INTERVAL_S - (now - _last_call_ts)
+        if wait > 0:
+            time.sleep(wait)
+        _last_call_ts = time.monotonic()
 
 
 class BaseAgent(ABC):
@@ -74,6 +98,7 @@ class BaseAgent(ABC):
         last_error: Exception | None = None
         for attempt in range(_MAX_RETRIES):
             try:
+                _pace_request()
                 response = self._client.invoke(messages)
                 response_text: str = response.content  # type: ignore[assignment]
 

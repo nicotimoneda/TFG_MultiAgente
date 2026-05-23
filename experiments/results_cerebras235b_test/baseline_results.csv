@@ -1,0 +1,2 @@
+benchmark,problem_id,config,seed,pass_all_tests,test_pass_rate,tokens_input,tokens_output,latency_seconds,revision_count,timestamp,model,error
+HE,HumanEval/0,baseline,42,True,1.0,224,64,0.2832,0,2026-05-23T11:57:27.230682+00:00,llama3.1-8b,

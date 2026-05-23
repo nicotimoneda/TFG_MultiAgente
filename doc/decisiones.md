@@ -425,3 +425,116 @@ re-correr sobre los CSV existentes sin invalidar lo ya completado.
 **Coste.** Cero impacto en el run en curso (las ablaciones se ejecutarán
 en una segunda pasada tras el primer barrido sobre baseline + sequential +
 self_reflection). Los analizadores son post-hoc y no consumen tokens.
+
+---
+
+## S8 — Recorte de scope: barrido principal en 3 configuraciones sobre Ollama local
+
+**Contexto.** Tras 18 horas de corrida con el backend local de Ollama
+sobre el modelo Qwen 2.5 Coder 7B Instruct (cuantización Q4_K_M)
+servido por un MacBook Air M2, el ritmo observado sostenido era de
+~5.3 ejecuciones/hora para la configuración secuencial y proyectado a
+~12-16 minutos por ejecución para las configuraciones con
+self-reflection. La proyección de finalización de la matriz principal
+de 2 460 runs era de aproximadamente 20 días sólo para las cinco
+configuraciones originales, y 30 días añadiendo las ablaciones.
+
+Dos restricciones materializaron este número como insuficiente:
+
+1. **Plazo de entrega.** La fecha límite institucional para la entrega
+   final es el 8 de junio de 2026. Veintiocho días de margen no
+   alcanzaban para completar el experimento al ritmo del backend
+   local incluso si la corrida no sufriera interrupciones.
+2. **Hardware.** El MacBook Air M2 carece de ventilación activa.
+   Sostener el modelo cargado en memoria con uso de GPU intensivo
+   durante semanas activa el throttling térmico de forma continuada,
+   lo que ralentiza aún más la corrida y compromete la integridad
+   del equipo a medio plazo.
+
+**Alternativas evaluadas.**
+
+- **Mantener Ollama local con la matriz completa de 8
+  configuraciones.** Termina aproximadamente en 30 días. Incompatible
+  con plazo y con la integridad térmica del Mac. Descartado.
+- **Cerebras Inference con Qwen-3 235B (tier gratuito).** Modelo grande
+  con rate limit muy restrictivo (~1 request/minuto sostenido). La
+  proyección de la matriz completa supera los 12 días sólo en tiempo
+  de API. Descartado.
+- **Cerebras Inference con Llama 3.1 8B (tier gratuito).** En
+  benchmarks aislados de llamadas cortas el ritmo medido fue de ~7
+  req/min sin errores, pero bajo la carga real del runner (5-6
+  llamadas concatenadas por problema en sequential y SR) el tier
+  gratuito reaccionó con errores 429 que reducían el ritmo efectivo a
+  ~2 req/min. Se probó con pacing artificial de 2.5 s entre llamadas
+  y con workers en {1, 3}: el límite se mantuvo. Descartado tras
+  pruebas empíricas.
+- **Cerebras Inference con Llama 3.3 70B.** No probado por experiencia
+  con qwen-3-235B en el mismo tier; el rate limit observado para
+  modelos grandes hace prever un comportamiento similar.
+- **Recorte de scope con Ollama local.** Mantener el backend con el
+  ritmo conocido pero reducir el número de configuraciones del
+  barrido principal para que termine en plazo. **Adoptada.**
+
+**Decisión.** Mantener **Ollama local con Qwen 2.5 Coder 7B Instruct
+(cuantización Q4_K_M)** como backend definitivo, restaurar el progreso
+acumulado (baseline cerrado con 492 ejecuciones, sequential parcial con
+~90 ejecuciones) y reducir el alcance del barrido principal a las
+**tres configuraciones más informativas**:
+
+1. **baseline** (configuración 1, monolítica)
+2. **sequential** (configuración 2, pipeline de 5 roles)
+3. **self_reflection_r1** (configuración 3 con `max_revisions=1`)
+
+Se excluyen del barrido principal las variantes `self_reflection_r2`,
+`self_reflection_r3` y las tres ablaciones de rol. Su código se
+conserva intacto y operacional; la decisión es de alcance experimental,
+no de funcionalidad del sistema.
+
+**Justificación académica.**
+
+- **Las tres configuraciones conservadas responden las tres hipótesis
+  del estudio.** H1 (especialización) se contrasta con baseline vs
+  sequential. H2 (auto-revisión) se contrasta con sequential vs
+  SR_r1. H3 (trade-off coste-calidad) se observa agregando los tres
+  puntos en la frontera de Pareto del análisis. Las comparaciones
+  pareadas exigidas por la metodología quedan intactas.
+- **SR_r2 y SR_r3 son experimentos de hiperparámetro, no de
+  hipótesis.** Estudian si más iteraciones del ciclo aportan más
+  mejora, pero no son necesarias para contrastar H2 (que el ciclo
+  iterativo aporta valor). Su omisión queda recogida como línea de
+  trabajo futuro en el capítulo 8.
+- **Las ablaciones quedan reservadas para una segunda corrida
+  posterior** condicional al tiempo disponible. El código está
+  implementado y testado; basta con relanzar el watchdog con
+  `ABLATION_SUBSET_SIZE=N` para activarlas.
+- **El equipo no se compromete térmicamente.** El barrido reducido
+  cabe en aproximadamente 9 días desde el reinicio, lo que sitúa el
+  cierre hacia el 1-2 de junio con margen para redacción final y
+  empaquetado. El throttling térmico transitorio en este plazo es
+  reversible y dentro de tolerancias del fabricante.
+
+**Implicaciones.**
+
+- El watchdog (`scripts/experiment_watchdog.sh`) excluye SR_r2, SR_r3
+  y ablaciones por defecto. Las variables de entorno `ENABLE_SR_R2`,
+  `ENABLE_SR_R3` y `ABLATION_SUBSET_SIZE` permiten reactivar las
+  fases sin tocar código.
+- Los archivos archivados temporalmente en
+  `experiments/results_ollama_archive/` se restauran como punto de
+  partida.
+- El capítulo 4 (sección 4.3) y el capítulo 6 mantienen Ollama como
+  backend canónico.
+
+**Lecciones del intento Cerebras.**
+
+La fase exploratoria sobre Cerebras quedó descartada pero deja
+documentada para trabajos futuros una observación útil: el tier
+gratuito del proveedor no absorbe los bursts característicos de los
+pipelines multi-agente (varias llamadas concatenadas por problema)
+incluso con un único worker y pacing artificial. El factory de
+clientes (`src/llm/client_factory.py`) sigue soportando ambos
+backends, lo que mantiene abierta la opción de un plan de pago o de
+otro proveedor de inferencia.
+
+**Coste.** Cero coste económico (Ollama local). El equipo de
+desarrollo opera bajo throttling térmico moderado durante ~9 días.

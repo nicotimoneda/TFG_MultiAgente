@@ -40,9 +40,13 @@ describe en detalle en las secciones 6.2 a 6.7
 ## 6.2. Modelo y backend de inferencia
 
 El experimento final utiliza el modelo Qwen 2.5 Coder 7B Instruct con
-cuantización Q4_K_M, servido por Ollama en local sobre el equipo MacBook Air
-M2 descrito en la sección 4.5. La elección del modelo se justifica en el
-capítulo 4 por la restricción de memoria unificada del equipo de ejecución.
+cuantización Q4_K_M, servido por Ollama en local sobre el MacBook Air M2
+descrito en la sección 4.5. La elección del backend local y del modelo se
+justifica en la sección 4.3 y se complementa con la decisión de scope
+documentada en S8 del anexo de decisiones, que recorta el barrido
+principal a las tres configuraciones más informativas (baseline,
+sequential, SR_r1) para que la corrida quepa en el plazo de entrega sin
+comprometer la respuesta a las tres hipótesis.
 
 La temperatura de generación se fija en 0.2 para todos los agentes excepto
 el Developer reflexivo del grafo de self-reflection, que opera con
@@ -220,13 +224,22 @@ modificación manual del CSV.
 
 ## 6.7. Estado de la corrida
 
-La corrida principal se lanza el 22 de mayo de 2026 con el comando:
+La corrida principal se orquesta con el watchdog descrito en la sección
+5.8 (`scripts/experiment_watchdog.sh`), que invoca al runner con la
+configuración canónica y lo reinicia automáticamente si Ollama o el
+proceso fallan. El comando de arranque es:
 
 ```bash
-LLM_BACKEND=ollama nohup python experiments/run_experiments.py \
-    --model qwen2.5-coder:7b-instruct-q4_K_M \
-    > experiments/logs/run.out 2>&1 &
+LLM_BACKEND=ollama MODEL=qwen2.5-coder:7b-instruct-q4_K_M \
+  nohup bash scripts/experiment_watchdog.sh \
+  > experiments/logs/watchdog.out 2>&1 &
 ```
+
+Por defecto, el watchdog ejecuta las tres configuraciones del barrido
+principal (baseline, sequential, self_reflection_r1). Para reactivar
+las variantes SR_r2/r3 o las ablaciones basta con sobrescribir las
+variables de entorno `ENABLE_SR_R2`, `ENABLE_SR_R3` o
+`ABLATION_SUBSET_SIZE` (ver entrada S8 del anexo de decisiones).
 
 El proceso, con PID registrado en la consola, se ejecuta en background con
 `nohup` para sobrevivir al cierre del terminal. El dashboard de seguimiento
