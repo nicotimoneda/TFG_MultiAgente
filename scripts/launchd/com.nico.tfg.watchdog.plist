@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.nico.tfg.watchdog</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/nico/UNI/TFG/TFG_MultiAgente/scripts/experiment_watchdog.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/nico/UNI/TFG/TFG_MultiAgente</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>MODEL</key>
+        <string>qwen2.5-coder:7b-instruct-q4_K_M</string>
+        <key>LLM_BACKEND_VAR</key>
+        <string>ollama</string>
+        <key>WORKERS</key>
+        <string>1</string>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/nico/UNI/TFG/TFG_MultiAgente/experiments/logs/watchdog.launchd.out</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/nico/UNI/TFG/TFG_MultiAgente/experiments/logs/watchdog.launchd.err</string>
+
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+</dict>
+</plist>

@@ -1,12 +1,12 @@
 {
   "total": 1476,
-  "completed": 581,
+  "completed": 835,
   "failed": 0,
-  "last_updated": "2026-05-23T12:01:45.281556+00:00",
+  "last_updated": "2026-05-24T19:29:05.049260+00:00",
   "current": {
     "benchmark": "HE",
-    "problem_id": "HumanEval/29",
+    "problem_id": "HumanEval/114",
     "config": "sequential",
-    "seed": 456
+    "seed": 123
   }
 }
