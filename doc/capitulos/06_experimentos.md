@@ -235,6 +235,8 @@ LLM_BACKEND=ollama MODEL=qwen2.5-coder:7b-instruct-q4_K_M \
   > experiments/logs/watchdog.out 2>&1 &
 ```
 
+Listado 6.1. Comando de arranque del watchdog que orquesta la corrida.
+
 Por defecto, el watchdog ejecuta las tres configuraciones del barrido
 principal (baseline, sequential, self_reflection_r1). Para reactivar
 las variantes SR_r2/r3 o las ablaciones basta con sobrescribir las
@@ -259,6 +261,8 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e ".[experiments]"
 ollama pull qwen2.5-coder:7b-instruct-q4_K_M
 ```
+
+Listado 6.2. Comandos de reproducción del entorno de ejecución.
 
 Los prompts completos de los seis agentes se recogen en el Anexo A. Los
 caches locales de los benchmarks (`experiments/cache/humaneval.json` y

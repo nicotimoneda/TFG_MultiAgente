@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    participant S as AgentState
+    participant PM as Product Manager
+    participant AR as Arquitecto
+    participant DEV as Developer
+    participant QA as QA Tester
+    participant REV as Code Reviewer
+
+    Note over S: init: problem_statement, function_signature, test_cases
+    S->>PM: invoke
+    PM->>S: write prd
+    S->>AR: invoke
+    AR->>S: write design_doc
+    S->>DEV: invoke
+    DEV->>S: write code_artifact
+    S->>QA: invoke (sandbox subprocess)
+    QA->>S: write test_results
+    S->>REV: invoke
+    Note over REV: verdict derived from test_results
+    REV->>S: write review_comments
+    REV->>DEV: revision (only self_reflection, if REQUEST_CHANGES)
+    REV->>S: END (if APPROVE or max revisions)

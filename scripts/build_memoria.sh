@@ -34,6 +34,7 @@ COMBINED_MD="$BUILD/${OUT_BASE}_full.md"
 # Order of inclusion. The bibliography goes last by tutor's instruction:
 # no per-chapter references, only the global list at the end.
 CHAPTERS=(
+    "doc/capitulos/00_resumen.md"
     "doc/capitulos/01_introduccion.md"
     "doc/capitulos/02_estado_del_arte.md"
     "doc/capitulos/03_objetivos.md"
@@ -45,6 +46,9 @@ CHAPTERS=(
     "doc/capitulos/anexo_A_prompts.md"
     "doc/capitulos/anexo_B_decisiones.md"
     "doc/capitulos/anexo_C_reproducir.md"
+    "doc/capitulos/anexo_D_glosario.md"
+    "doc/capitulos/anexo_E_etica.md"
+    "doc/capitulos/anexo_F_agradecimientos.md"
     "doc/referencias/bibliografia.md"
 )
 
@@ -58,6 +62,8 @@ date: "2026"
 lang: es
 toc: true
 toc-depth: 2
+lof: true
+lot: true
 numbersections: true
 geometry: margin=2.5cm
 ---

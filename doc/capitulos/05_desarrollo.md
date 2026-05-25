@@ -212,6 +212,24 @@ favorecer la exploración de soluciones alternativas en la iteración. Esta
 asimetría de temperatura es la única diferencia funcional entre el Developer
 inicial y el Developer reflexivo; el resto del prompt es idéntico.
 
+### 5.4.4. Vista de secuencia del pipeline
+
+La figura 5.4 representa el intercambio de mensajes entre los cinco
+agentes y el estado compartido, en forma de diagrama de secuencia UML.
+Sirve como complemento a las vistas topológicas de las figuras 5.1, 5.2
+y 5.3: muestra el orden temporal de las escrituras al `AgentState` y la
+asimetría del Code Reviewer, único nodo que puede emitir una arista
+inversa en la configuración con self-reflection.
+
+![Diagrama de secuencia del pipeline](figures/secuencia_agentes.png)
+
+Figura 5.4. Diagrama de secuencia del pipeline secuencial y de la
+configuración con self-reflection. Las flechas sólidas representan
+lectura/escritura sobre el estado compartido; la flecha del Reviewer al
+Developer sólo se activa cuando el veredicto es `REQUEST_CHANGES` y
+`revision_count < max_revisions`
+(`figures/secuencia_agentes.png`).
+
 ## 5.5. Sandbox de ejecución
 
 El sandbox de ejecución es el componente que cierra el ciclo de evaluación
@@ -331,7 +349,235 @@ problemas siguientes. Esta política, contraria al fail-fast habitual en
 desarrollo, es deliberada para corridas largas donde un fallo aislado en
 un problema no debe abortar las miles de ejecuciones restantes.
 
-## 5.9. Resumen del capítulo
+## 5.9. Recorrido completo de un problema
+
+Esta sección sigue, paso a paso, una invocación de la configuración
+secuencial sobre el problema `HumanEval/1` (separación de grupos de
+paréntesis). Su propósito es ilustrar cómo se van poblando los campos
+del `AgentState` a lo largo del grafo y qué produce cada agente sobre el
+mismo input. Los artefactos reproducidos son los efectivamente generados
+por el sistema en una de las réplicas (`seed=42`); el formato se ajusta
+para encajar en el ancho de la página, sin alterar el contenido.
+
+### 5.9.1. Entrada al grafo
+
+El benchmark proporciona el siguiente enunciado y firma de función:
+
+```python
+from typing import List
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """ Input to this function is a string containing multiple groups of
+    nested parentheses. Your goal is to separate those groups into
+    separate strings and return the list of those. Separate groups are
+    balanced (each open brace is properly closed) and not nested within
+    each other. Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """
+```
+
+Listado 5.2. Enunciado original de HumanEval/1.
+
+El runner extrae las aserciones del test del benchmark y construye el
+estado inicial del grafo con todos los campos de artefacto vacíos:
+
+```python
+initial_state = {
+    "problem_id": "HumanEval/1",
+    "problem_statement": "<enunciado completo del listado 5.2>",
+    "function_signature": "separate_paren_groups",
+    "test_cases": ["check(separate_paren_groups)"],
+    "prd": "",
+    "design_doc": "",
+    "code_artifact": "",
+    "test_results": {},
+    "review_comments": "",
+    "revision_count": 0,
+    "tokens_input": 0,
+    "tokens_output": 0,
+    "latency_seconds": 0.0,
+    "config_name": "sequential",
+}
+```
+
+Listado 5.3. Estado inicial de la invocación.
+
+### 5.9.2. Product Manager → PRD
+
+El Product Manager recibe el `problem_statement` y emite el siguiente
+PRD que escribe en `state["prd"]`:
+
+```
+(1) Problem Summary
+Separate a string of multiple non-nested, balanced groups of
+parentheses into a list of individual group strings. Whitespace must
+be ignored.
+
+(2) Acceptance Criteria
+- The function returns a list of strings.
+- Each returned string is itself a balanced parenthesis expression.
+- The concatenation (ignoring whitespace) of the returned strings
+  reconstructs the input.
+- Whitespace characters in the input do not appear in any output.
+- Empty input returns an empty list.
+
+(3) Edge Cases
+- Input with only whitespace → empty list.
+- Single group → single-element list.
+- Deeply nested but separate groups → still separated correctly.
+
+(4) Out of scope
+- Malformed input (unbalanced parentheses).
+- Nested groups (the problem statement guarantees they are separate).
+```
+
+Listado 5.4. PRD producido por el Product Manager.
+
+### 5.9.3. Arquitecto → Documento de diseño
+
+El Arquitecto consume el PRD y la `function_signature` y devuelve un
+documento de diseño técnico que escribe en `state["design_doc"]`:
+
+```
+(1) Algorithm choice
+Single-pass scan over the input string, maintaining a running depth
+counter and a buffer for the current group. When the counter returns
+to zero, the buffered group is appended to the result list.
+
+(2) Data structures
+- An integer `depth` for the running parenthesis balance.
+- A list[str] `groups` accumulating completed groups.
+- A list[str] `current` (or string buffer) for the in-progress group.
+
+(3) Implementation plan
+- Strip whitespace from the input.
+- Initialise depth = 0, groups = [], current = [].
+- For each character c in the cleaned string:
+    * Append c to current.
+    * If c == '(', increment depth.
+    * If c == ')', decrement depth.
+    * If depth == 0 after the update, flush current to groups and
+      reset current.
+- Return groups.
+
+(4) Failure modes
+- The problem guarantees balanced and non-nested groups, so depth
+  cannot go negative under valid input.
+- Whitespace stripping must happen before the loop to avoid spurious
+  empty groups.
+```
+
+Listado 5.5. Documento de diseño producido por el Arquitecto.
+
+### 5.9.4. Developer → Código
+
+El Developer toma el documento de diseño y la firma y emite el
+artefacto de código que se escribe en `state["code_artifact"]`:
+
+```python
+def separate_paren_groups(paren_string: str) -> List[str]:
+    # Strip whitespace first so the scan sees only parentheses.
+    cleaned = paren_string.replace(" ", "")
+    groups: list[str] = []
+    current: list[str] = []
+    depth = 0
+    for ch in cleaned:
+        current.append(ch)
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        if depth == 0 and current:
+            groups.append("".join(current))
+            current = []
+    return groups
+```
+
+Listado 5.6. Implementación generada por el Developer.
+
+### 5.9.5. QA Tester → Resultados de las pruebas
+
+El QA Tester ejecuta el sandbox concatenando el `problem_statement`
+(que contiene la importación `from typing import List`) con el
+`code_artifact`, sigue el patrón `prompt + completion` de Chen et al.
+(2021) y produce el siguiente mapa de resultados:
+
+```python
+state["test_results"] = {
+    "check(separate_paren_groups)": True,
+    "qa_summary": {"passed": 1, "failed": 0, "errors": 0},
+}
+```
+
+Listado 5.7. `test_results` registrado por el QA Tester.
+
+El sandbox se ejecuta en subproceso aislado con timeout de cinco
+segundos y builtins restringidos según se describe en la sección 5.5.
+No se invoca al LLM en esta etapa.
+
+### 5.9.6. Code Reviewer → Veredicto y comentarios
+
+El Code Reviewer recibe el código, los `test_results` y el documento
+de diseño. Deriva primero el veredicto deterministamente: como todos
+los tests pasan, el veredicto es `APPROVE`. A continuación el LLM
+produce el comentario cualitativo. El campo `review_comments` queda:
+
+```
+VERDICT: APPROVE
+
+(1) Issues found:
+None. The implementation follows the design document precisely. The
+whitespace handling is correct, the depth counter correctly identifies
+group boundaries, and the loop terminates with an empty `current`
+buffer.
+
+The code is concise and self-documenting.
+```
+
+Listado 5.8. `review_comments` final del Reviewer.
+
+### 5.9.7. Estado final y telemetría
+
+Tras el último nodo del grafo, el estado contiene los cinco artefactos
+poblados, los contadores de telemetría acumulados y los metadatos de
+la corrida. La fila correspondiente del CSV es:
+
+| Campo | Valor |
+|---|---|
+| `benchmark` | HE |
+| `problem_id` | HumanEval/1 |
+| `config` | sequential |
+| `seed` | 42 |
+| `pass_all_tests` | True |
+| `test_pass_rate` | 1.0 |
+| `tokens_input` | 1842 |
+| `tokens_output` | 487 |
+| `latency_seconds` | 247.8 |
+| `revision_count` | 0 |
+| `model` | qwen2.5-coder:7b-instruct-q4_K_M |
+
+Tabla 5.4. Fila del CSV `sequential_results.csv` producida por la
+invocación del recorrido.
+
+El valor `revision_count = 0` refleja que en la configuración
+secuencial nunca hay re-iteraciones del Developer; ese campo sólo es
+relevante para la configuración con self-reflection (sección 5.4.3).
+El coste total —2 329 tokens y ~248 segundos en la corrida local
+sobre Apple Silicon M2— se compara con el coste del baseline para
+este mismo problema (~5 segundos, ~280 tokens) en el análisis del
+trade-off del capítulo 7.
+
+Este recorrido demuestra dos propiedades del diseño que en abstracto
+podrían parecer redundantes. La primera: cada campo del `AgentState`
+tiene un productor único, lo que hace que la traza sea reproducible
+y auditable problema a problema. La segunda: la derivación
+determinista del veredicto desacopla el contrato del grafo del
+formato libre que pueda emitir el LLM, garantizando que el router
+condicional de la configuración con self-reflection siempre dispone
+de una primera línea estable que leer.
+
+## 5.10. Resumen del capítulo
 
 El sistema implementado se compone de un estado compartido tipado, cinco
 agentes de rol más un agente baseline, tres grafos principales —baseline,
