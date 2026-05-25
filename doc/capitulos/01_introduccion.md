@@ -2,116 +2,126 @@
 
 ## 1.1. Motivación y contexto
 
-El desarrollo de software es un proceso multi-rol por naturaleza. Un equipo de
-ingeniería distribuye el trabajo entre perfiles con responsabilidades distintas
-—analista de requisitos, arquitecto, desarrollador, revisor de código, tester—
-porque ningún profesional individual puede ejercer todas esas funciones con la
-misma eficacia de forma simultánea. Esta división del trabajo no es una convención
-cultural; es una respuesta a la complejidad real de construir software que funcione.
+El desarrollo de software profesional se reparte entre varios roles. Hay
+quien define los requisitos, quien diseña la arquitectura, quien escribe
+el código, quien lo prueba y quien lo revisa antes de integrarlo. Esta
+división del trabajo no es una convención: es una forma de gestionar
+complejidad. Ningún profesional puede mantener al mismo tiempo el detalle
+de los requisitos, la coherencia del diseño, la corrección del código y
+la cobertura de las pruebas; cuando se intenta, suelen aparecer errores
+precisamente en las interfaces entre fases.
 
-Los modelos de lenguaje de gran tamaño han cambiado lo que es posible en este
-dominio. La aparición de modelos capaces de generar código fuente a partir de
-descripciones en lenguaje natural ha abierto la posibilidad de automatizar partes
-del ciclo de desarrollo que hasta hace pocos años requerían intervención humana
-exclusiva. Sin embargo, usar un LLM como agente único para resolver una tarea
-compleja de ingeniería de software presenta limitaciones concretas. La ventana de
-contexto es finita: un agente único no puede mantener simultáneamente el detalle
-de los requisitos, la coherencia de la arquitectura, la corrección del código y la
-cobertura de las pruebas. Tampoco tiene mecanismos internos para detectar sus
-propios errores: genera una solución plausible, pero no puede determinar si es
-correcta más allá de que sea sintácticamente válida.
+Los modelos de lenguaje de gran tamaño han cambiado lo que se puede
+automatizar de ese ciclo. Hoy un modelo razonable es capaz de generar
+una función Python plausible a partir de su docstring. Lo que no puede
+hacer, al menos no de forma fiable, es saber si la función que ha
+generado es correcta. La ventana de contexto pone un techo a cuánto
+puede sostener en mente al mismo tiempo, y el modelo no tiene un
+mecanismo interno que distinga "código que compila" de "código que
+resuelve el problema". El resultado típico es una solución sintácticamente
+válida que falla en casos límite que nadie le pidió comprobar.
 
-La respuesta que propone la investigación reciente es distribuir el trabajo entre
-múltiples agentes con roles diferenciados, coordinados por un mecanismo de
-orquestación explícito. Esta idea replica, con un sustrato tecnológico distinto,
-la lógica que estructura los equipos de ingeniería humanos: especialización para
-ganar profundidad, coordinación para mantener coherencia. Los sistemas que han
-adoptado este enfoque —ChatDev, MetaGPT, AutoGen— han mostrado resultados más
-consistentes que los agentes únicos en tareas de generación de código de
-complejidad moderada, aunque su evaluación empírica sistemática sobre benchmarks
-estandarizados sigue siendo escasa.
+La investigación reciente ha respondido a esto con sistemas multi-agente:
+varios LLMs con prompts distintos, cada uno encargado de una fase del
+trabajo, comunicándose a través de algún tipo de estado compartido.
+ChatDev, MetaGPT y AutoGen son los ejemplos más visibles. Los tres
+funcionan razonablemente bien en demostraciones, pero la evaluación
+empírica controlada sobre benchmarks estándar es menos sistemática de
+lo que cabría esperar: la mayoría de los trabajos publicados comparan
+el sistema completo contra un baseline monolítico, sin aislar qué papel
+juega cada rol concreto en el resultado final.
 
-Este trabajo parte de esa observación y la lleva a un diseño concreto e
-implementación evaluable: un sistema multi-agente con roles especializados,
-orquestado mediante un grafo de estado en LangGraph, cuyo rendimiento se compara
-de forma controlada contra un baseline monolítico en los benchmarks estándar
-del campo.
+Este TFG construye un sistema multi-agente con cinco roles
+(Product Manager, Arquitecto, Developer, QA Tester, Code Reviewer)
+orquestado mediante un grafo de estado en LangGraph, y lo compara
+contra un baseline monolítico sobre HumanEval con tres configuraciones
+incrementales y tres variantes de ablación. El objetivo es responder
+una pregunta concreta: cuándo, cuánto y a qué coste el diseño
+multi-agente aporta valor real.
 
-La tabla 1.1 sintetiza las limitaciones del LLM monolítico identificadas
-en esta sección y las contramedidas que ofrece el sistema multi-agente
-propuesto. La tabla anticipa, de forma compacta, el argumento que se
-desarrolla en los capítulos posteriores.
+La tabla 1.1 anticipa, en forma sintética, qué limitaciones del LLM
+monolítico el sistema propuesto pretende neutralizar y cómo. Los
+capítulos siguientes desarrollan cada fila en detalle.
 
 | Limitación del LLM monolítico | Contramedida del sistema multi-agente |
 |---|---|
-| Ventana de contexto finita; no puede mantener simultáneamente requisitos, diseño, código y pruebas | Distribución de responsabilidades entre cinco agentes con artefactos tipados en el estado compartido |
+| Ventana de contexto finita; no puede sostener simultáneamente requisitos, diseño, código y pruebas | Distribución de responsabilidades entre cinco agentes con artefactos tipados en el estado compartido |
 | No detecta errores en su propia salida | Agente QA Tester con ejecución determinista en sandbox y agente Code Reviewer con veredicto derivado de las pruebas |
-| Sin mecanismo de iteración fundamentada | Bucle condicional Reviewer → Developer parametrizado por `max_revisions` y guiado por evidencia externa |
+| No tiene mecanismo de iteración fundamentada | Bucle condicional Reviewer → Developer parametrizado por `max_revisions` y guiado por evidencia externa |
 | Comunicación en texto libre, sensible a alucinaciones | Protocolo estructurado por artefactos tipados (PRD, design, code, tests, review) |
-| Imposible auditar el flujo de decisión | Grafo LangGraph explícito e inspeccionable que documenta cada transición |
+| Difícil auditar el flujo de decisión | Grafo LangGraph explícito e inspeccionable que documenta cada transición |
 
 Tabla 1.1. Limitaciones del LLM monolítico y contramedidas del sistema
 propuesto.
 
 ## 1.2. Problema y pregunta de investigación
 
-La pregunta central de este trabajo es si un sistema multi-agente con roles
-especializados y orquestación basada en grafos de estado mejora a un LLM
-monolítico en tareas de generación automática de código, y en qué condiciones ese
-beneficio justifica el coste adicional en términos de tokens consumidos y latencia.
+La pregunta central del trabajo es si un sistema multi-agente con
+roles especializados y orquestación basada en grafos de estado mejora
+a un LLM monolítico en generación automática de código, y bajo qué
+condiciones ese beneficio compensa el coste adicional en tokens y
+latencia.
 
-Esta pregunta tiene dos dimensiones. La primera es técnica: ¿produce el sistema
-multi-agente soluciones más correctas, medidas por pass@1 y pass@k sobre HumanEval
-y MBPP? La segunda es económica: ¿a qué coste computacional se obtiene esa mejora,
-y existe un umbral a partir del cual la complejidad del sistema deja de producir
-beneficios medibles?
+Es una pregunta con dos partes. La técnica: ¿produce el sistema
+multi-agente soluciones más correctas, medidas por pass@1 y pass@k
+sobre HumanEval? La económica: ¿a qué coste se obtiene esa mejora, y
+hay un umbral a partir del cual añadir complejidad deja de aportar?
 
-Responder ambas dimensiones requiere un sistema implementado y evaluable, no solo
-una arquitectura teórica. Por eso este TFG no se limita a proponer un diseño sino
-que lo implementa en Python con LangGraph y lo somete a evaluación empírica
-reproducible sobre benchmarks públicos con métricas definidas de antemano.
+Responder a las dos requiere un sistema realmente implementado y
+evaluado, no un diseño en papel. Por eso el trabajo entrega tres
+cosas concretas: el código en Python con LangGraph, los datos
+experimentales en CSV reproducibles, y el análisis estadístico
+formal sobre ellos.
 
 ## 1.3. Objetivos y contribuciones
 
-El objetivo principal de este trabajo es diseñar, implementar y evaluar un sistema
-multi-agente basado en LLMs para la resolución colaborativa de tareas de generación
-automática de código, con el fin de determinar si la especialización por roles y la
-orquestación explícita producen mejoras medibles sobre un agente único.
-
-De ese objetivo se derivan tres líneas de trabajo concretas: el diseño de una
-arquitectura con roles diferenciados —Product Manager, Arquitecto, Developer, QA
-Tester y Code Reviewer— coordinados por un agente supervisor mediante un grafo de
-estado en LangGraph; la implementación de ese sistema en Python de forma modular,
-documentada y reproducible; y su evaluación empírica sobre HumanEval y MBPP,
-midiendo pass@1, pass@k, coste en tokens y latencia frente a un baseline
+El objetivo principal es diseñar, implementar y evaluar empíricamente
+un sistema multi-agente basado en LLMs para generación automática de
+código, comparándolo de forma controlada contra un baseline
 monolítico.
 
-Las contribuciones concretas del trabajo son una arquitectura de orquestación
-multi-agente orientada a ingeniería de software con definición explícita de roles,
-estado compartido y flujo de control condicional; una implementación funcional en
-LangGraph que puede ser reproducida y extendida; un conjunto de variantes de
-ablación que aíslan empíricamente la contribución de cada rol al rendimiento
-global del pipeline; una métrica de adherencia estructural que operacionaliza
-la afirmación —recurrente en la literatura— de que el protocolo de comunicación
-basado en artefactos reduce alucinaciones respecto a la conversación libre; y
-un análisis empírico del trade-off entre calidad de la solución y coste
-computacional en sistemas multi-agente para generación de código, junto con un
-banco experimental resumible y un pipeline de análisis automático cuya salida
-—figuras, tablas y tests pareados— constituye un producto reproducible del
-estudio.
+De ahí se derivan tres líneas de trabajo: diseñar la arquitectura con
+los cinco roles (Product Manager, Arquitecto, Developer, QA Tester y
+Code Reviewer) sobre un grafo de estado en LangGraph; implementar el
+sistema en Python de forma modular y reproducible; y evaluarlo
+empíricamente sobre HumanEval midiendo pass@1, pass@3, coste en
+tokens y latencia frente al baseline.
+
+Las contribuciones concretas del trabajo son cinco:
+
+1. La arquitectura multi-agente con estado compartido tipado y
+   flujo de control condicional, publicada como repositorio
+   reproducible en GitHub.
+2. Las tres variantes de ablación de rol (`no_pm`,
+   `no_architect`, `no_reviewer`), que aíslan empíricamente la
+   contribución individual de cada agente al rendimiento global,
+   un análisis que la literatura habitualmente omite.
+3. La métrica de adherencia estructural, que cuantifica con un
+   número la afirmación —común en la literatura pero rara vez
+   medida— de que el protocolo por artefactos reduce las
+   alucinaciones frente a la conversación libre.
+4. El análisis del trade-off coste-calidad como frontera de
+   Pareto sobre las configuraciones evaluadas.
+5. El banco experimental resumible y el pipeline de análisis
+   automático, que generan figuras, tablas y test pareados de
+   McNemar directamente desde los CSV.
 
 ## 1.4. Estructura del documento
 
-El capítulo 2 revisa el estado del arte y el marco teórico, desde los fundamentos
-de los sistemas multi-agente clásicos hasta los frameworks actuales basados en LLM,
-la generación automática de código y los benchmarks de evaluación disponibles. El
-capítulo 3 formaliza los objetivos e hipótesis del trabajo. El capítulo 4 describe
-la metodología: criterios de diseño, protocolo de evaluación y configuración
-experimental. El capítulo 5 detalla el desarrollo e implementación del sistema,
-incluyendo la definición de roles, el grafo de estado y las herramientas disponibles
-para cada agente. El capítulo 6 presenta los experimentos realizados. El capítulo 7
-analiza los resultados y discute sus implicaciones respecto a las hipótesis
-formuladas. El capítulo 8 recoge las conclusiones y propone líneas de investigación
-futura. El Anexo A reproduce verbatim los prompts de sistema y las plantillas
-de prompt de usuario de cada agente, en cumplimiento del criterio de
-reproducibilidad declarado en el capítulo 3.
+El capítulo 2 revisa el estado del arte: desde los fundamentos de los
+sistemas multi-agente clásicos hasta los frameworks actuales basados
+en LLM, los benchmarks de generación de código y los mecanismos de
+orquestación basados en grafos. El capítulo 3 formaliza objetivos e
+hipótesis. El capítulo 4 describe la metodología y el protocolo
+experimental. El capítulo 5 detalla la implementación. El capítulo 6
+presenta el banco experimental. El capítulo 7 analiza los resultados.
+El capítulo 8 recoge las conclusiones y abre líneas de trabajo
+futuro.
+
+Seis anexos completan el documento. El Anexo A reproduce verbatim los
+prompts de sistema y las plantillas de prompt de usuario de los seis
+agentes. El Anexo B sintetiza las decisiones técnicas tomadas sprint
+a sprint. El Anexo C consolida los comandos de reproducción del
+experimento. El Anexo D recoge un glosario de acrónimos y términos.
+El Anexo E aborda los aspectos éticos, legales y de sostenibilidad
+del trabajo. El Anexo F contiene los agradecimientos.

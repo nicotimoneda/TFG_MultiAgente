@@ -52,3 +52,6 @@ HE,HumanEval/16,self_reflection_r1,123,False,0.0,15371,3054,489.3854,1,2026-05-2
 HE,HumanEval/16,self_reflection_r1,456,False,0.0,14700,2441,411.5925,1,2026-05-25T16:31:43.190140+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
 HE,HumanEval/17,self_reflection_r1,42,True,1.0,9964,2636,391.7463,0,2026-05-25T16:38:34.802039+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
 HE,HumanEval/17,self_reflection_r1,123,True,1.0,10096,2631,460.5252,0,2026-05-25T16:45:06.568217+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/17,self_reflection_r1,456,False,0.0,16230,3718,905.6871,1,2026-05-25T16:52:47.111934+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/18,self_reflection_r1,42,True,1.0,9362,1829,357.4046,0,2026-05-25T17:07:52.966328+00:00,qwen2.5-coder:7b-instruct-q4_K_M,
+HE,HumanEval/18,self_reflection_r1,123,True,1.0,9244,1691,339.7359,0,2026-05-25T17:13:50.392397+00:00,qwen2.5-coder:7b-instruct-q4_K_M,

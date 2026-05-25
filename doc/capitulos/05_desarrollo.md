@@ -2,13 +2,12 @@
 
 ## 5.1. Estructura del repositorio
 
-El repositorio del proyecto se organiza en cuatro paquetes principales bajo el
-directorio `src/` y un directorio paralelo `experiments/` que aloja el banco de
-pruebas. Esta separación responde al criterio de Pereira-Vale et al. (2024)
-sobre arquitecturas multi-agente: el código del sistema —agentes, grafo, estado
-compartido— debe ser independiente del arnés de evaluación, de forma que los
-componentes del sistema se puedan invocar tanto desde el experimento como desde
-cualquier integración futura sin reorganización.
+El código del proyecto se reparte en cuatro paquetes bajo `src/` y un
+directorio `experiments/` con el banco de pruebas. La idea, en línea
+con Pereira-Vale et al. (2024), es que el sistema en sí —agentes,
+grafo, estado— no dependa del arnés que lo evalúa. Así los
+componentes se pueden invocar desde el experimento o desde cualquier
+otra integración sin tocar nada.
 
 | Paquete | Responsabilidad |
 |---|---|
@@ -21,13 +20,14 @@ cualquier integración futura sin reorganización.
 
 Tabla 5.1. Mapa de paquetes del proyecto.
 
-La separación entre `src/agents/` y `src/graph/` corresponde a la distinción
-entre lógica del rol (qué prompt usa cada agente, qué artefacto produce) y
-lógica de composición (en qué orden se ejecutan los agentes y bajo qué
-condiciones se ciclan). Esta separación es deliberada: el mismo agente
-Developer aparece en la configuración secuencial, en la configuración con
-self-reflection y en dos de las tres variantes de ablación. Mantener el agente
-agnóstico respecto al grafo permite reutilizarlo sin duplicación.
+La separación entre `src/agents/` y `src/graph/` es deliberada y vale
+la pena explicarla. En `src/agents/` vive la lógica del rol —el
+prompt de sistema, qué campos del estado lee, qué artefacto escribe—.
+En `src/graph/` vive la lógica de composición: en qué orden se
+ejecutan los agentes y cuándo se cicla. La misma instancia del
+Developer aparece tal cual en la configuración secuencial, en la de
+self-reflection y en dos de las tres ablaciones. Si los grafos y los
+agentes vivieran juntos, habría que duplicar código tres veces.
 
 ## 5.2. Estado compartido `AgentState`
 
@@ -129,20 +129,25 @@ de sistema. Los prompts completos figuran en el Anexo A.
 
 Tabla 5.2. Especificación de los cinco agentes de rol.
 
-Dos decisiones de diseño merecen detalle. La primera: el agente QA Tester no
-invoca al LLM. Su trabajo es puramente determinista —tomar el código del
-estado, ejecutarlo contra los `test_cases` en el sandbox y almacenar el mapa
-de resultados—. Mantenerlo como nodo del grafo aporta dos cosas: hace
-explícita la etapa de verificación en el flujo de control, lo que el lector
-puede inspeccionar al imprimir el grafo, y mantiene el contrato del
-`AgentState` consistente (todos los campos se poblan a lo largo del
-pipeline, no quedan inicializados a vacío). La segunda: el veredicto del
-Reviewer se deriva de los `test_results` antes de invocar al LLM. Si todos
-los tests pasan, el veredicto es `APPROVE` y el LLM sólo produce comentarios
-cualitativos; en caso contrario es `REQUEST_CHANGES`. Esta derivación
-determinista evita que el ciclo de self-reflection dependa del parsing
-exitoso de una etiqueta dentro de texto libre del modelo, fuente conocida
-de fragilidad en sistemas multi-agente (Hong et al., 2024).
+Dos decisiones de diseño aquí no son obvias y conviene explicarlas. La
+primera: el QA Tester no llama al LLM. Es un nodo determinista que
+ejecuta el código en el sandbox y guarda el mapa de resultados. Podría
+parecer que ahorrarse ese nodo es lo limpio, pero mantenerlo como nodo
+del grafo tiene dos ventajas. Una, hace visible la etapa de
+verificación cuando se imprime el grafo. Otra, todos los campos del
+`AgentState` se acaban poblando por algún nodo, lo que evita estados
+intermedios con artefactos a medio rellenar.
+
+La segunda: el veredicto del Reviewer (APPROVE / REQUEST_CHANGES) **no
+se le pide al LLM**. Se calcula a partir de `test_results`: si todos
+los tests pasan, APPROVE; si no, REQUEST_CHANGES. El LLM produce sólo
+los comentarios cualitativos. Esto es importante porque el router del
+grafo de self-reflection lee esa primera línea para decidir si vuelve
+al Developer. Pedir al LLM que genere literalmente
+`VERDICT: REQUEST_CHANGES` y confiar en que lo haga bien es la receta
+para fallos intermitentes; Hong et al. (2024) lo documentan como una
+fuente conocida de fragilidad en pipelines multi-agente con modelos
+pequeños.
 
 ## 5.4. Construcción de los grafos LangGraph
 
@@ -579,11 +584,12 @@ de una primera línea estable que leer.
 
 ## 5.10. Resumen del capítulo
 
-El sistema implementado se compone de un estado compartido tipado, cinco
-agentes de rol más un agente baseline, tres grafos principales —baseline,
-secuencial y con self-reflection— y tres variantes de ablación construidas
-sobre el mismo `AgentState`. Un sandbox de subproceso aislado cierra el
-ciclo de evaluación funcional y un runner resumible orquesta las miles de
-ejecuciones del experimento. Los siguientes capítulos describen el banco
-experimental construido sobre esta implementación (capítulo 6) y los
-resultados obtenidos hasta la fecha de cierre del documento (capítulo 7).
+Recapitulando: el sistema tiene un estado compartido tipado, seis
+agentes (cinco de rol y uno monolítico), tres grafos principales y
+tres ablaciones que reaprovechan el mismo `AgentState`. El sandbox
+en subproceso ejecuta el código generado de forma aislada, y un
+runner resumible se encarga de orquestar las miles de ejecuciones
+del experimento sin perder progreso si algo se cae a mitad.
+
+El capítulo 6 describe el banco experimental construido sobre esta
+base; el 7 analiza los resultados disponibles a fecha de cierre.

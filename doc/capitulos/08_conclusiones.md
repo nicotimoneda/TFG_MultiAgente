@@ -2,20 +2,23 @@
 
 ## 8.1. Conclusiones generales
 
-Este Trabajo Fin de Grado ha diseñado, implementado y evaluado un sistema
-multi-agente para generación automática de código basado en orquestación
-mediante LangGraph y agentes de rol especializados. El sistema construido
-cubre los tres elementos arquitecturales planteados en la propuesta —un
-LLM monolítico como baseline, un pipeline secuencial de cinco roles
-profesionales y un pipeline con bucle de auto-revisión— y los amplía con
-una capa de ablaciones que aísla la contribución individual de cada rol.
+El TFG ha producido tres cosas que se pueden señalar concretamente: un
+sistema multi-agente funcional construido sobre LangGraph, un banco
+experimental que lo evalúa de forma reproducible, y los datos crudos
+de esa evaluación tal como están al cerrar el documento. Los tres
+elementos arquitecturales que se propusieron originalmente —baseline
+monolítico, pipeline secuencial de cinco roles y pipeline con bucle
+de auto-revisión— están implementados y probados. Sobre esa base se
+han añadido tres ablaciones de rol que no estaban en la propuesta
+original pero que resultaron útiles para responder con más finura la
+pregunta de qué contribuye cada agente.
 
-La metodología, los componentes y el banco experimental están listos para
-proporcionar evidencia cuantitativa sobre las tres hipótesis planteadas en
-el capítulo 3. La corrida experimental, en marcha al cierre del documento,
-genera los datos que el pipeline de análisis automático consume para
-producir las figuras y tablas del capítulo 7 en cada nueva ejecución del
-analizador.
+La corrida experimental seguía en marcha al cerrar la memoria, así
+que algunos números del capítulo 7 son parciales por construcción.
+El pipeline de análisis está pensado precisamente para eso: cada vez
+que se ejecuta sobre los CSV actualizados, regenera figuras, tablas
+y test pareados. La interpretación final por hipótesis depende de
+cuándo se vuelva a tirar el análisis.
 
 ## 8.2. Cumplimiento de los objetivos específicos
 
@@ -176,18 +179,28 @@ para gestionar múltiples artefactos correlacionados.
 
 ## 8.7. Reflexión final
 
-El sistema construido y el banco experimental que lo evalúa son la
-respuesta operativa a la pregunta planteada en la propuesta:
-¿proporciona la especialización por roles en un sistema multi-agente
-una ventaja medible frente a un LLM monolítico, y bajo qué condiciones?
-La infraestructura del trabajo permite hoy formular esa pregunta como
-un experimento controlado, reproducible y extensible. Los resultados
-cuantitativos finales emergerán de la corrida en marcha; las
-conclusiones definitivas se obtendrán al consolidar la matriz completa.
+La pregunta de la propuesta era si la especialización por roles aporta
+una ventaja medible frente a un LLM monolítico, y bajo qué condiciones.
+El sistema y el banco experimental ahora permiten formularla como un
+experimento controlado: los números finales dependen de cuándo se
+consolide la matriz, pero el aparato para responderla está montado.
 
-Independientemente del veredicto cuantitativo, el trabajo aporta tres
-piezas operativas que sobreviven al ciclo del TFG: el código del
-sistema multi-agente, el banco experimental resumible y el pipeline de
-análisis automático. Estas tres piezas constituyen la base sobre la que
-se pueden articular las líneas de trabajo futuro mencionadas en la
-sección 8.6 sin tener que reconstruir la infraestructura desde cero.
+Hay algo que el experimento no termina de capturar y que vale la pena
+nombrar. Trabajar con cinco agentes hablando entre sí a través de un
+estado tipado se siente, en la práctica, más cercano a coordinar un
+equipo humano que a invocar un modelo. Cuando una solución falla, se
+puede mirar qué dijo el Product Manager, qué interpretó el Arquitecto,
+qué implementó el Developer y qué señaló el Reviewer; cada paso queda
+explícito y auditable. Esa propiedad —la trazabilidad de la decisión—
+me parece más interesante a largo plazo que cualquier puntito de
+pass@1 que aporte el sistema. Si los pipelines multi-agente terminan
+imponiéndose, no creo que sea sólo por su precisión: creo que será
+también porque permiten razonar sobre por qué el sistema hizo lo que
+hizo, algo que un LLM monolítico de prompt largo simplemente no
+ofrece.
+
+Independientemente del veredicto cuantitativo final, el trabajo deja
+tres piezas que sobreviven al ciclo del TFG: el código del sistema
+multi-agente, el banco experimental resumible y el pipeline de
+análisis automático. Las líneas futuras de la sección 8.6 pueden
+empezar desde ahí sin reconstruir la infraestructura.

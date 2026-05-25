@@ -35,6 +35,7 @@ COMBINED_MD="$BUILD/${OUT_BASE}_full.md"
 # no per-chapter references, only the global list at the end.
 CHAPTERS=(
     "doc/capitulos/00_resumen.md"
+    "doc/capitulos/declaracion_ia.md"
     "doc/capitulos/01_introduccion.md"
     "doc/capitulos/02_estado_del_arte.md"
     "doc/capitulos/03_objetivos.md"
