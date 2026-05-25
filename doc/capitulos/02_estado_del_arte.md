@@ -16,15 +16,16 @@ Estos fundamentos —autonomía, comunicación estructurada, especialización de
 
 ## 2.2. Modelos de Lenguaje de Gran Tamaño como agentes
 
-Los modelos de lenguaje de gran tamaño (LLM) surgieron inicialmente como sistemas
-de predicción textual. A partir de 2022 quedó patente que modelos de escala
-suficiente exhiben capacidades emergentes que los hacen viables como núcleos
-cognitivos de agentes autónomos: razonamiento encadenado, planificación de pasos,
-uso de herramientas externas y autoevaluación de resultados. Dos revisiones
-sistemáticas recientes —Xi et al. (2023) y Wang et al. (2024)— coinciden en
-identificar tres componentes funcionales en un agente LLM: un módulo de percepción,
-un módulo de razonamiento y un módulo de acción, con mecanismos de memoria y
-planificación como dimensiones de variación entre arquitecturas.
+Los modelos de lenguaje de gran tamaño (LLM) nacieron como sistemas de
+predicción de la siguiente palabra. A partir de 2022 empezó a verse que, por
+encima de cierta escala, esos modelos hacían cosas que no se les había
+entrenado a hacer de forma explícita: razonar paso a paso, planificar
+acciones, llamar a herramientas externas, evaluar su propia salida. Esas
+capacidades emergentes son las que abrieron la puerta a usarlos como núcleo
+cognitivo de un agente. Las dos revisiones sistemáticas más citadas —Xi et al.
+(2023) y Wang et al. (2024)— convergen en una descomposición funcional de
+tres bloques: percepción, razonamiento y acción, con memoria y planificación
+como dimensiones donde las arquitecturas se diferencian.
 
 El punto de inflexión conceptual fue la introducción del prompting con cadena de
 pensamiento (*Chain-of-Thought*, CoT). Wei et al. (2022) demostraron que instruir a
@@ -52,29 +53,29 @@ la siguiente iteración. Reflexion transforma así el ciclo de retroalimentació
 proceso de refinamiento lingüístico sin necesidad de actualizar los parámetros del
 modelo.
 
-El uso de herramientas externas recibió tratamiento sistemático con Toolformer
-(Schick et al., 2023). En ese trabajo se mostró que un LLM puede aprender de forma
-autosupervisada a insertar llamadas a APIs dentro de su propia generación de texto.
-Este resultado establece una base técnica para equipar a los agentes con capacidades
-que trascienden la generación textual: consulta de bases de datos, ejecución de
-código, acceso a información en tiempo real.
+Toolformer (Schick et al., 2023) sistematizó el uso de herramientas externas.
+El trabajo mostró que un LLM puede aprender, de forma autosupervisada, a
+insertar llamadas a APIs en mitad de su propia generación. Eso es lo que
+permite que un agente haga cosas que la generación de texto pura no alcanza:
+consultar una base de datos, ejecutar código, acceder a información que el
+modelo no tiene en sus pesos.
 
-En conjunto, estos trabajos definen el repertorio de capacidades sobre el que se
-construyen los sistemas multi-agente modernos. La pregunta que se abre de inmediato
-es cómo coordinar múltiples instancias de estos agentes de forma que cooperen en la
-resolución de tareas que ninguno podría abordar individualmente; ese es el objeto de
-los frameworks que se examinan en la siguiente subsección.
+Estos cuatro trabajos —CoT, ReAct, Reflexion, Toolformer— definen el
+repertorio sobre el que se han construido los sistemas multi-agente actuales.
+La siguiente pregunta es de coordinación: cómo hacer que varios de estos
+agentes cooperen en tareas que ninguno resolvería por separado. Los
+frameworks que han intentado responderla se examinan a continuación.
 
 ## 2.3. Frameworks multi-agente basados en LLM
 
-El agente individual descrito en la sección anterior tiene un límite cognitivo
-evidente: la longitud finita de su ventana de contexto y la ausencia de
-especialización. Una tarea compleja de ingeniería de software —análisis de
-requisitos, diseño de arquitectura, implementación, revisión de código, generación
-de pruebas— implica competencias heterogéneas que difícilmente coexisten en un único
-prompt. La respuesta natural es dividir el trabajo entre agentes con roles distintos,
-coordinados por un mecanismo de orquestación. Esta idea es el núcleo de los
-frameworks multi-agente basados en LLM que han proliferado desde 2023.
+El agente individual de la sección anterior tiene un techo claro: la ventana
+de contexto es finita y un único prompt no puede ser, a la vez, especialista
+en requisitos, diseño, implementación, pruebas y revisión. Una tarea de
+ingeniería de software de cierta complejidad exige todas esas competencias.
+Lo natural es repartirlas entre agentes con roles distintos y dejar la
+coordinación a un orquestador externo. Esa es la idea sobre la que se han
+construido los frameworks multi-agente con LLM que han ido apareciendo desde
+2023.
 
 El primero en formalizar el concepto de rol como mecanismo de especialización fue
 CAMEL (Li et al., 2023). En CAMEL dos agentes —uno con rol de «instructor» y otro de
@@ -85,7 +86,7 @@ Este trabajo mostró que la asignación de roles mediante prompts de sistema es 
 para producir comportamientos cooperativos estables, sin necesitar mecanismos de
 coordinación explícitos fuera del propio lenguaje natural.
 
-ChatDev (Qian et al., 2023) trasladó esta arquitectura al dominio específico del
+ChatDev (Qian et al., 2024) trasladó esta arquitectura al dominio específico del
 desarrollo de software. En ChatDev, distintos agentes adoptan roles propios de un
 equipo de ingeniería —director ejecutivo, jefe de producto, ingeniero de software,
 revisor de código, tester— y se comunican a través de una secuencia de fases de
@@ -135,7 +136,7 @@ con cada uno de ellos sin necesidad de releer las descripciones en prosa.
 |---|---|---|---|---|---|---|
 | AutoGen (Wu et al., 2023) | Red sin jerarquía | Conversación libre | No | Dinámico, dependiente del LLM | Bajo | No |
 | CAMEL (Li et al., 2023) | Diádica (2 agentes) | Conversación bilateral | Sí (2) | Lineal | Bajo | No |
-| ChatDev (Qian et al., 2023) | Cascada por fases | Estructurada por fase | Sí (5+) | Lineal (cascada de waterfall) | Medio | Parcial |
+| ChatDev (Qian et al., 2024) | Cascada por fases | Estructurada por fase | Sí (5+) | Lineal (cascada de waterfall) | Medio | Parcial |
 | MetaGPT (Hong et al., 2024) | Jerárquica con supervisor | SOPs estructuradas + artefactos | Sí (5) | Lineal con SOPs | Alto | Sí |
 | **TFG (este trabajo)** | Grafo de estado explícito | Estado compartido tipado | Sí (5) | Lineal + arista condicional | **Alto** | **Sí (TypedDict)** |
 
@@ -222,11 +223,17 @@ resolviendo menos del 4% de los problemas— dejan claro que la brecha entre
 generar funciones aisladas y resolver tareas reales de ingeniería de software
 es grande.
 
-Ese resultado tiene consecuencias directas para el diseño del sistema propuesto
-en este TFG. Si un agente único no resuelve SWE-bench de forma fiable, la
-hipótesis es que distribuir el trabajo entre agentes especializados —uno que
-localiza el error, otro que propone el parche, otro que verifica la regresión—
-puede mejorar la tasa de éxito.
+El sistema propuesto en este TFG se evalúa sobre HumanEval, no sobre SWE-bench.
+La razón es práctica: ejecutar SWE-bench requiere un harness Docker por
+instancia y un coste de cómputo incompatible con los recursos disponibles para
+un trabajo de fin de grado. HumanEval ofrece, en cambio, un banco controlado
+que permite aislar el efecto de la orquestación multi-agente sin que el ruido
+de la infraestructura domine los resultados. La hipótesis que se contrasta es,
+por tanto, más acotada: si distribuir el trabajo entre agentes especializados
+—uno que redacta requisitos, otro que diseña, otro que implementa, otro que
+prueba, otro que revisa— mejora la tasa de superación de pruebas unitarias
+sobre funciones aisladas. SWE-bench queda como referencia del techo de
+dificultad que cualquier sistema de este tipo aspira a abordar a medio plazo.
 
 La tabla 2.2 contrasta los cinco benchmarks más relevantes de la literatura
 en términos de granularidad, cardinalidad y tipo de tarea. Aporta el
@@ -284,26 +291,30 @@ revisados en el capítulo es lo que sintetiza la sección siguiente.
 
 ## 2.7. Síntesis y posicionamiento del trabajo
 
-La revisión de este capítulo recorre un arco que va desde la definición clásica
-de agente autónomo (Wooldridge y Jennings, 1995) hasta los frameworks actuales de
-orquestación multi-agente basados en LLM. El hilo conductor es un problema que
-persiste a lo largo de toda esa trayectoria: cómo coordinar agentes especializados
-para que produzcan resultados que ninguno alcanzaría por separado.
+Este capítulo ha recorrido un arco largo: desde la definición clásica de
+agente autónomo de Wooldridge y Jennings (1995) hasta los frameworks actuales
+de orquestación multi-agente sobre LLM. El problema que aparece en todas las
+etapas es el mismo: cómo coordinar agentes especializados para que produzcan,
+en conjunto, algo que ninguno alcanzaría por separado.
 
-De esa revisión se derivan tres observaciones que motivan el diseño de este
-trabajo. Los modelos de lenguaje generan código plausible pero carecen de
-verificación interna; la corrección depende de ejecución contra pruebas o de un
-segundo agente que revise la salida. Los frameworks como ChatDev y MetaGPT
-muestran que la especialización por roles mejora la coherencia del resultado, pero
-sus flujos de control son rígidos y no admiten iteración condicional. SWE-bench,
-por su parte, evidencia que la brecha entre resolver ejercicios sintéticos y
-resolver issues reales de software sigue siendo grande para cualquier sistema
-actual.
+De esa revisión salen tres observaciones que justifican el diseño del
+sistema. Primero, los LLM generan código plausible pero no saben si es
+correcto; la verificación tiene que venir de fuera, vía ejecución contra
+pruebas o vía un segundo agente revisor. Segundo, frameworks como ChatDev y
+MetaGPT confirman que la especialización por roles mejora la coherencia del
+resultado, pero su flujo de control es lineal y no permite iteración
+condicional. Tercero, SWE-bench deja claro que la distancia entre resolver
+ejercicios aislados y resolver issues reales de software es enorme, y que
+ningún sistema actual la cierra de forma fiable.
 
 El sistema propuesto en este TFG responde a esas limitaciones con un diseño
-concreto: topología jerárquica con agente supervisor, flujo de control condicional
-implementado en LangGraph y evaluación sobre SWE-bench como referencia empírica.
-El objetivo no es proponer una arquitectura sin precedentes, sino estudiar de
-forma controlada si la orquestación mediante grafos de estado con roles
-especializados produce mejoras medibles sobre un agente único en tareas reales de
-ingeniería de software. El capítulo siguiente describe ese diseño.
+concreto: cinco agentes especializados (PM, Arquitecto, Developer, QA, Code
+Reviewer) coordinados por un grafo de estado en LangGraph, con un bucle de
+revisión condicional Reviewer → Developer acotado por un número máximo de
+iteraciones. La evaluación se hace sobre HumanEval con tres configuraciones
+incrementales (baseline, secuencial sin ciclo, secuencial con self-reflection)
+y un conjunto de ablaciones por rol. El objetivo no es proponer una
+arquitectura sin precedentes, sino medir, de forma controlada y reproducible,
+qué aporta cada decisión de diseño sobre la tasa de superación, el coste en
+tokens y la latencia. El capítulo siguiente concreta ese diseño en una serie
+de objetivos verificables.

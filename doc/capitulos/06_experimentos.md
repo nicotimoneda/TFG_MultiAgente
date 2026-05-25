@@ -144,11 +144,10 @@ al beneficio observado.
 
 ### 6.4.4. Adherencia estructural al protocolo
 
-La propuesta del trabajo postula que el protocolo de comunicación
-estructurada por artefactos reduce las alucinaciones respecto a la
-conversación libre. Para operacionalizar la afirmación se introduce la
-métrica de **adherencia estructural**: la fracción de ejecuciones en las
-que ningún agente del pipeline emitió un artefacto malformado.
+La hipótesis es que el protocolo de comunicación estructurada por
+artefactos produce menos alucinaciones que la conversación libre. Para
+medirlo se usa la **adherencia estructural**: la fracción de ejecuciones
+en las que ningún agente del pipeline emitió un artefacto malformado.
 
 La señal concreta es la ausencia de bloques ```python``` en la salida del
 agente Developer (o del agente Baseline en su configuración monolítica).
@@ -160,7 +159,7 @@ CSV de cada configuración y produce el ratio:
 $$\text{adherencia} = 1 - \frac{\#\text{ejecuciones con aviso estructural}}{\#\text{ejecuciones totales}}$$
 
 La métrica es post-hoc, read-only y se calcula sin re-invocar al LLM. Su
-resultado se reporta como porcentaje en la tabla 7.4 del capítulo de
+resultado se reporta como porcentaje en la tabla 7.3 del capítulo de
 resultados.
 
 ### 6.4.5. Intervalos de confianza
@@ -272,8 +271,8 @@ de ejecución es un proceso Python aislado con timeout y builtins
 restringidos, descrito en la sección 5.5 y configurable mediante
 parámetros del módulo `src/evaluation/sandbox.py`.
 
-La corrida completa sobre el equipo de referencia (MacBook Air M2, 16 GB)
-y el modelo seleccionado se completa en cuestión de horas para baseline,
-extendiéndose a varios días para las configuraciones con self-reflection.
-El runner es resumible, por lo que la ejecución puede interrumpirse y
-retomarse sin pérdida de progreso.
+En el equipo de referencia (MacBook Air M2, 16 GB) la corrida del
+baseline se completa en horas; las configuraciones con self-reflection
+suben a varios días por la presencia del bucle Reviewer → Developer. El
+runner es resumible: si se interrumpe, retoma exactamente donde se quedó
+sin pérdida de progreso.

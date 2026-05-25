@@ -11,6 +11,9 @@ reiteradamente en la memoria, agrupados por área temática.
 | **BDI** | Beliefs, Desires, Intentions | Modelo de arquitectura de agentes en el que el comportamiento emerge de creencias sobre el mundo, deseos y compromisos activos (Rao y Georgeff, 1995). |
 | **SOP** | Standard Operating Procedure | Protocolo de actuación estructurado asignado a un rol; término popularizado por MetaGPT (Hong et al., 2024). |
 | **FIPA** | Foundation for Intelligent Physical Agents | Organización que estandarizó protocolos de comunicación inter-agente a finales de los noventa. |
+| **SR** | Self-Reflection | Patrón en el que un agente revisor evalúa la salida y la devuelve al productor para refinarla en un bucle acotado por número máximo de iteraciones. |
+| **PM** | Product Manager | Rol del pipeline secuencial encargado de redactar el PRD a partir del enunciado. |
+| **LangGraph** | — | Framework de orquestación de agentes basado en grafos de estado tipados, mantenido por LangChain Inc. (LangChain Inc., 2024). |
 
 ## D.2. Modelos de lenguaje
 
@@ -28,9 +31,11 @@ reiteradamente en la memoria, agrupados por área temática.
 | Sigla | Expansión | Definición breve |
 |---|---|---|
 | **pass@k** | Pass at k | Probabilidad de que al menos una de `k` muestras independientes generadas por el modelo supere todos los tests del problema. Estimador insesgado de Chen et al. (2021). |
-| **HumanEval** | Human-curated Evaluation | Benchmark de 164 problemas de generación de funciones Python con tests unitarios. |
+| **HumanEval** | Human-curated Evaluation | Benchmark de 164 problemas de generación de funciones Python con tests unitarios (Chen et al., 2021). |
 | **MBPP** | Mostly Basic Python Problems | Benchmark complementario de problemas introductorios y de complejidad media (Austin et al., 2021). |
 | **APPS** | Automated Programming Progress Standard | Benchmark de >10 000 problemas de competitive programming (Hendrycks et al., 2021). |
+| **SWE-bench** | Software Engineering Benchmark | Benchmark de tareas reales de ingeniería del software a partir de issues de GitHub (Jiménez et al., 2024). |
+| **ClassEval** | Class-level Evaluation | Benchmark de generación de código a nivel de clase con dependencias entre métodos (Du et al., 2023). |
 | **PRD** | Product Requirements Document | Artefacto de especificación de requisitos producido por el agente Product Manager. |
 | **QA** | Quality Assurance | Rol responsable de la verificación funcional del código mediante pruebas. |
 | **CI** | Confidence Interval | Intervalo de confianza estadístico, reportado al 95 % en este trabajo. |
@@ -42,6 +47,7 @@ reiteradamente en la memoria, agrupados por área temática.
 |---|---|---|
 | **API** | Application Programming Interface | Interfaz programática de un servicio. |
 | **CSV** | Comma-Separated Values | Formato de fichero de los resultados experimentales. |
+| **JSON** | JavaScript Object Notation | Formato de serialización de datos estructurados usado para prompts, logs y trazas. |
 | **TypedDict** | Typed Dictionary | Tipo de Python para diccionarios con campos tipados; usado para el `AgentState`. |
 | **CPU** | Central Processing Unit | Procesador del equipo de cómputo. |
 | **GPU** | Graphics Processing Unit | Unidad de procesamiento gráfico, utilizada para acelerar la inferencia del LLM. |
@@ -84,3 +90,13 @@ reiteradamente en la memoria, agrupados por área temática.
 | `tokens_input` | Todos | Tokens de entrada acumulados durante la ejecución. |
 | `tokens_output` | Todos | Tokens de salida acumulados. |
 | `latency_seconds` | Runner | Tiempo de wall-clock de la ejecución. |
+
+## D.8. Marco normativo y ético
+
+| Sigla | Expansión | Definición breve |
+|---|---|---|
+| **IA** | Inteligencia Artificial | Término genérico para los sistemas tratados en este TFG. Equivalente al AI anglosajón. |
+| **RGPD** | Reglamento General de Protección de Datos | Reglamento (UE) 2016/679 que regula el tratamiento de datos personales en la Unión Europea. |
+| **GPAI** | General-Purpose AI | Categoría de modelos de propósito general definida por el Reglamento de IA de la UE (AI Act). |
+| **UE** | Unión Europea | Marco jurisdiccional aplicable al desarrollo y despliegue del sistema. |
+| **UNESCO** | Organización de las Naciones Unidas para la Educación, la Ciencia y la Cultura | Organismo cuyas recomendaciones éticas sobre IA se citan en el análisis ético. |

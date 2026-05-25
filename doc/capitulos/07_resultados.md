@@ -11,11 +11,11 @@ análisis (`experiments/analyze_results.py`) sobre los CSV disponibles a
 fecha de cierre, y se regeneran automáticamente con cada re-ejecución del
 analizador a medida que el experimento avanza.
 
-Esta política —reportar lo que hay, con intervalos de confianza, en lugar
-de esperar al cierre total de la matriz— es la única que permite
-presentar evidencia cuantitativa real en el documento. La alternativa
-sería redactar el capítulo con números fabricados o ilustrativos, lo que
-contradice el principio metodológico declarado en el capítulo 4.
+La política es reportar lo que ya está medido, con sus intervalos de
+confianza, en vez de esperar a que la matriz se cierre por completo. Es
+la única forma de que el capítulo contenga evidencia cuantitativa real;
+la alternativa sería rellenar las tablas con números ilustrativos, y eso
+choca de frente con el principio metodológico del capítulo 4.
 
 Los resultados que requieren múltiples configuraciones para tener sentido
 —comparación entre arquitecturas, contraste de hipótesis pareadas, análisis
@@ -148,7 +148,7 @@ La latencia media por problema, alrededor de 5 segundos, es coherente con
 una sola invocación al modelo de 7 B sobre Apple Silicon: incluye el
 tiempo de generación del modelo cuantizado y el overhead de orquestación
 de LangGraph, que añade décimas de segundo por la inicialización y el
-compilado del grafo unípido. Esta latencia base es el punto de referencia
+compilado del grafo. Esta latencia base es el punto de referencia
 contra el cual interpretar las decenas o cientos de segundos por problema
 esperables para las configuraciones multi-agente, que invocan al modelo
 cinco o más veces por ejecución.
@@ -258,7 +258,7 @@ emplea aproximación chi-cuadrado con corrección de continuidad cuando el
 número de pares discordantes `b + c` es al menos 25, y test binomial
 exacto en caso contrario para preservar la potencia en muestras pequeñas.
 
-La tabla 7.4 (`doc/tables/pairwise_mcnemar.md`) reporta todas las
+La tabla 7.5 (`doc/tables/pairwise_mcnemar.md`) reporta todas las
 comparaciones pareadas entre configuraciones, ordenadas por p-valor
 ascendente. Al cierre del documento la matriz pareada está formada
 mayoritariamente por celdas con un número reducido de problemas
