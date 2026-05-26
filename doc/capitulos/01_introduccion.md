@@ -35,9 +35,18 @@ Este TFG construye un sistema multi-agente con cinco roles
 (Product Manager, Arquitecto, Developer, QA Tester, Code Reviewer)
 orquestado mediante un grafo de estado en LangGraph, y lo compara
 contra un baseline monolítico sobre HumanEval con tres configuraciones
-incrementales y tres variantes de ablación. El objetivo es responder
-una pregunta concreta: cuándo, cuánto y a qué coste el diseño
-multi-agente aporta valor real.
+canónicas: baseline, pipeline secuencial sin ciclo, y pipeline con
+bucle de self-reflection. Tres variantes de ablación de rol quedan
+implementadas en el runner y disponibles para una segunda pasada. La
+pregunta concreta del trabajo es si la especialización por roles y la
+orquestación explícita producen mejoras medibles sobre HumanEval con
+un modelo de 7 B parámetros desplegado en local, y a qué coste. La
+respuesta empírica del experimento —que se anticipa aquí para evitar
+sorpresas al lector— es que, en ese régimen, el pipeline multi-agente
+no supera al baseline. Por qué ocurre eso, qué literatura crítica
+reciente apunta en la misma dirección, y qué condiciones podrían
+revertir el resultado son las preguntas que vertebran el resto del
+documento.
 
 La tabla 1.1 anticipa, en forma sintética, qué limitaciones del LLM
 monolítico el sistema propuesto pretende neutralizar y cómo. Los
@@ -52,25 +61,38 @@ capítulos siguientes desarrollan cada fila en detalle.
 | Difícil auditar el flujo de decisión | Grafo LangGraph explícito e inspeccionable que documenta cada transición |
 
 Tabla 1.1. Limitaciones del LLM monolítico y contramedidas del sistema
-propuesto.
+propuesto. La tabla describe el diseño *a priori*: el experimento del
+capítulo 7 contrasta si esas contramedidas se traducen, sobre HumanEval
+y un modelo de 7 B, en mejoras medibles. El resultado, adelantado en
+la sección 1.1, es que no.
 
 ## 1.2. Problema y pregunta de investigación
 
 La pregunta central del trabajo es si un sistema multi-agente con
 roles especializados y orquestación basada en grafos de estado mejora
 a un LLM monolítico en generación automática de código, y bajo qué
-condiciones ese beneficio compensa el coste adicional en tokens y
-latencia.
+condiciones ese beneficio —si existe— compensa el coste adicional en
+tokens y latencia.
 
 Es una pregunta con dos partes. La técnica: ¿produce el sistema
 multi-agente soluciones más correctas, medidas por pass@1 y pass@k
-sobre HumanEval? La económica: ¿a qué coste se obtiene esa mejora, y
-hay un umbral a partir del cual añadir complejidad deja de aportar?
+sobre HumanEval? La económica: ¿a qué coste se obtiene la diferencia
+observada, sea cual sea su signo, y permite identificar un régimen
+en el que la complejidad adicional se justifica?
 
-Responder a las dos requiere un sistema realmente implementado y
-evaluado, no un diseño en papel. Por eso el trabajo entrega tres
-cosas concretas: el código en Python con LangGraph, los datos
-experimentales en CSV reproducibles, y el análisis estadístico
+La pregunta se formula de forma neutra de manera deliberada. La
+literatura más visible (ChatDev, MetaGPT) presupone una respuesta
+positiva, pero trabajos recientes más críticos (Chen et al., 2024;
+Olausson et al., 2024; Huang et al., 2024) sugieren que la mejora no
+es automática y depende del régimen experimental. Este TFG aporta
+una respuesta empírica controlada para un régimen concreto —HumanEval,
+modelo de 7 B, ejecución local— y discute con honestidad qué implica
+esa respuesta y dónde se rompen sus límites.
+
+Responder a las dos preguntas requiere un sistema realmente
+implementado y evaluado, no un diseño en papel. Por eso el trabajo
+entrega tres cosas concretas: el código en Python con LangGraph, los
+datos experimentales en CSV reproducibles, y el análisis estadístico
 formal sobre ellos.
 
 ## 1.3. Objetivos y contribuciones

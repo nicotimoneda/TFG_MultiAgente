@@ -72,6 +72,22 @@ Pereira-Vale, A., Fernandez, E. B., Astudillo, H. y Márquez, G. (2024).
 Patterns for Multi-Agent Systems: A Systematic Mapping Study. *ACM
 Computing Surveys*.
 
+## Crítica empírica del paradigma multi-agente
+
+Chen, L., Davis, J. Q., Hanin, B., Bailis, P., Stoica, I., Zaharia, M. y
+Zou, J. (2024). Are More LLM Calls All You Need? Towards Scaling Laws of
+Compound Inference Systems. En *International Conference on Machine
+Learning (ICML)*. arXiv:2403.02419.
+
+Olausson, T. X., Inala, J. P., Wang, C., Gao, J. y Solar-Lezama, A.
+(2024). Is Self-Repair a Silver Bullet for Code Generation? En
+*International Conference on Learning Representations (ICLR)*.
+arXiv:2306.09896.
+
+Huang, D., Zhang, J. M., Luck, M., Bu, Q., Qing, Y. y Cui, H. (2024).
+AgentCoder: Multi-Agent-based Code Generation with Iterative Testing and
+Optimisation. *arXiv preprint arXiv:2312.13010*.
+
 Qian, C., Cong, X., Yang, C., Chen, W., Su, Y., Xu, J., Liu, Z. y Sun, M.
 (2024). Communicative Agents for Software Development. En *Proceedings of
 the 62nd Annual Meeting of the Association for Computational Linguistics*,

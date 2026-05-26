@@ -139,7 +139,7 @@ python -c "from src.evaluation.swebench_loader import load_swebench_lite; load_s
 La ejecución real de SWE-bench requiere el harness Docker oficial,
 referenciado en `src/evaluation/swebench_loader.py`. La ejecución de
 ClassEval requiere adaptar los prompts del Developer a generación de
-clases (sección 8.6).
+clases (sección 8.7).
 
 ## C.8. Hardware de referencia
 

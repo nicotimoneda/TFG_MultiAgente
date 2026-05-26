@@ -307,6 +307,25 @@ condicional. Tercero, SWE-bench deja claro que la distancia entre resolver
 ejercicios aislados y resolver issues reales de software es enorme, y que
 ningún sistema actual la cierra de forma fiable.
 
+Conviene, sin embargo, no asumir como artículo de fe que más agentes y
+más llamadas al modelo equivalgan, sin más, a mejores resultados. Una
+línea reciente de la literatura empieza a cuestionar esa lectura. Chen
+et al. (2024) muestran que, en sistemas de inferencia compuestos por
+múltiples llamadas a un LLM, el rendimiento agregado puede degradarse
+respecto al uso de una única llamada, especialmente cuando los errores
+intermedios se propagan y los criterios de filtrado no son estrictos.
+Olausson et al. (2024) llegan a una conclusión análoga para
+self-repair de código: la auto-corrección con un modelo único no es
+una *silver bullet*, y su efecto es más débil cuanto menor es la
+capacidad del modelo base. Huang et al. (2024) reportan en AgentCoder
+que las ganancias del multi-agente sobre HumanEval dependen de la
+calidad del agente de pruebas y se diluyen con modelos pequeños. Estos
+trabajos no invalidan los frameworks revisados antes; matizan el
+optimismo con el que suelen presentarse y delimitan el régimen en el
+que la coordinación entre agentes aporta valor. El experimento de
+este TFG aporta evidencia empírica adicional a esa discusión, como
+se documenta en los capítulos 7 y 8.
+
 El sistema propuesto en este TFG responde a esas limitaciones con un diseño
 concreto: cinco agentes especializados (PM, Arquitecto, Developer, QA, Code
 Reviewer) coordinados por un grafo de estado en LangGraph, con un bucle de

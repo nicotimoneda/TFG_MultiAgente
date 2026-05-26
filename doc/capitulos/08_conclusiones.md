@@ -97,8 +97,18 @@ fallos genera código menos correcto que un agente único sin protocolo.
 El resultado contradice la lectura habitual de la literatura
 multi-agente, que reporta mejoras consistentes del pipeline frente al
 monolítico (ChatDev, Qian et al., 2024; MetaGPT, Hong et al., 2024).
-Hay tres explicaciones plausibles, no excluyentes, que el experimento
-sugiere y que merecen investigación futura.
+No es, sin embargo, una contradicción aislada. Una línea crítica
+reciente coincide con la dirección del hallazgo: Chen et al. (2024)
+documentan que componer más llamadas a un LLM no garantiza mejor
+rendimiento agregado y puede empeorarlo cuando los errores se
+propagan; Olausson et al. (2024) muestran que la auto-corrección con
+modelos de capacidad limitada no produce las ganancias que
+intuitivamente cabría esperar; Huang et al. (2024) reportan que las
+ventajas observadas en AgentCoder sobre HumanEval se diluyen con
+modelos pequeños. El experimento de este TFG se inscribe en esa
+línea crítica y la refuerza con evidencia controlada. Tres
+explicaciones plausibles, no excluyentes, son consistentes tanto con
+los datos observados como con esa literatura.
 
 **Propagación de errores a lo largo del pipeline.** Cada agente del
 pipeline recibe como entrada la salida del agente anterior. Un error
@@ -167,7 +177,47 @@ adherencia (`experiments/adherence_metric.py`) operacionaliza una
 afirmación de la literatura que con frecuencia se sustenta sólo de
 forma cualitativa.
 
-## 8.5. Limitaciones del estudio
+## 8.5. Desviaciones respecto a la propuesta original
+
+La propuesta inicial de este TFG (documento *Propuesta TFG Multiagente*,
+marzo 2025) planteaba un alcance más ambicioso del que finalmente se ha
+ejecutado. La transparencia respecto a ese gap es parte del rigor
+metodológico del trabajo: la tabla 8.2 enumera, ítem por ítem, qué se
+prometió, qué se entrega y por qué se aplicó cada recorte. Las
+decisiones técnicas que sostienen estos recortes están documentadas
+sprint a sprint en el anexo B.
+
+| Elemento de la propuesta | Estado en la entrega | Justificación del recorte |
+|---|---|---|
+| Sistema multi-agente con cinco roles (PM, Arquitecto, Developer, QA, Reviewer) | Entregado | — |
+| Protocolo de comunicación estructurada con artefactos tipados | Entregado, con métrica original de adherencia estructural | — |
+| Baseline monolítico como referencia comparativa | Entregado | — |
+| Self-reflection y debate inter-agente | Entregado parcialmente: bucle Reviewer → Developer con `max_revisions = 1`; las variantes r2/r3 y el debate libre quedan implementados pero no evaluados | Coste de cómputo: SR_r1 ya consume varios días de inferencia local; r2 y r3 escalarían linealmente |
+| Dynamic Task Decomposition con LLM Planner | No implementado | Requiere mecanismos de planificación adaptativa que exceden el alcance temporal del TFG; se mantiene como línea futura (sección 8.7) |
+| Evaluación sobre SWE-bench | Sustituida por HumanEval | SWE-bench exige un harness Docker por instancia y un coste de infraestructura incompatible con un único equipo local |
+| Evaluación sobre ClassEval, DevBench, APPS | Descartadas | Misma razón de coste de cómputo con un modelo de 7 B local |
+| Evaluación sobre MBPP (200 problemas) | Descartada en la corrida principal; cache y runner preparados para una segunda pasada | Solapamiento alto de habilidades con HumanEval; la corrida principal ya consume todo el presupuesto de cómputo |
+| Comparativa heterogénea de LLMs por rol (CodeLlama developer + Mixtral reviewer, etc.) | No realizada | Espacio de configuraciones combinatoriamente grande sobre múltiples backends; el estudio usa el mismo modelo en todos los roles para aislar el efecto del diseño del pipeline |
+| Ablaciones de rol (sin PM, sin Arquitecto, sin Reviewer) | Implementadas en el runner, no evaluadas en la corrida principal | Decisión de scope (S8 del anexo de decisiones) para que la corrida quepa en el plazo de entrega |
+| Hallazgo cuantitativo prometido: mejora > 15 % en pass@1 frente al baseline | Resultado opuesto: el pipeline cae 21,8 puntos respecto al baseline (sección 7.6.1) | El experimento contrasta empíricamente la hipótesis y la rechaza con significancia estadística; el hallazgo negativo es, en sí, una contribución del trabajo |
+
+Tabla 8.2. Desviaciones respecto a la propuesta original. Cada
+recorte responde a una restricción identificada durante la ejecución
+del TFG y queda documentado en el sprint correspondiente del anexo B.
+
+Conviene subrayar el último punto. La propuesta presuponía un
+resultado positivo y fijaba un objetivo cuantitativo (> 15 % de mejora
+en pass@1) consistente con la lectura más visible de la literatura.
+El experimento, diseñado para contrastar esa hipótesis con rigor, la
+rechaza. Reportar ese resultado en vez de adornarlo no es un fracaso
+del TFG: es exactamente lo que un trabajo empírico controlado debe
+hacer cuando los datos van en contra de la expectativa de partida.
+La discusión de la sección 8.3 enmarca el hallazgo en el régimen
+experimental concreto (HumanEval × modelo de 7 B local) y lo conecta
+con literatura crítica reciente que apunta en la misma dirección
+(Chen et al., 2024; Olausson et al., 2024; Huang et al., 2024).
+
+## 8.6. Limitaciones del estudio
 
 El alcance del trabajo se limita por las restricciones siguientes:
 
@@ -203,7 +253,7 @@ estudio actual usa el mismo modelo en todos los roles, lo que permite
 atribuir las diferencias observadas exclusivamente al diseño del
 pipeline, pero deja sin responder la pregunta de optimización por rol.
 
-## 8.6. Líneas de trabajo futuro
+## 8.7. Líneas de trabajo futuro
 
 Las líneas siguientes se derivan directamente de las limitaciones
 anteriores y de las preguntas abiertas que el experimento principal
@@ -249,7 +299,7 @@ relacionadas. El `AgentState` actual modela un único `code_artifact`
 como cadena; la extensión exigiría modificar el estado y los prompts
 para gestionar múltiples artefactos correlacionados.
 
-## 8.7. Reflexión final
+## 8.8. Reflexión final
 
 La pregunta de la propuesta era si la especialización por roles aporta
 una ventaja medible frente a un LLM monolítico, y bajo qué condiciones.
@@ -274,7 +324,7 @@ es una propiedad cualitativa y este TFG no la ha medido.
 Tres piezas sobreviven al ciclo del trabajo independientemente del
 veredicto cuantitativo: el código del sistema multi-agente, el banco
 experimental resumible y el pipeline de análisis automático que
-regenera todo desde los CSV. Las líneas futuras de la sección 8.6
+regenera todo desde los CSV. Las líneas futuras de la sección 8.7
 —escalado del modelo, integración de SWE-bench Lite, comparativa
 heterogénea de backends por rol— pueden empezar desde esa
 infraestructura sin reconstruirla, y son las extensiones donde el
