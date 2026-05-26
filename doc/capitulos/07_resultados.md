@@ -166,7 +166,7 @@ del rango esperable del modelo y no introduce sesgos accidentales.
 | EvalPlus public leaderboard (HumanEval+) | qwen2.5-coder-7b-instruct (FP16) | HumanEval+ | ≈ 76% | — |
 | **Este TFG** (baseline) | qwen2.5-coder-7b-instruct Q4_K_M | HumanEval+ (evalplus) | ≈ 83% | — |
 
-Tabla 7.4. Comparativa del baseline frente a referencias públicas del
+Tabla 7.3. Comparativa del baseline frente a referencias públicas del
 mismo modelo.
 
 La discrepancia entre los tres números es coherente con tres
@@ -209,7 +209,7 @@ adherencia: ningún output del agente baseline carece del bloque
 |---|---:|---:|---:|---:|
 | baseline | 390 | 0 | 0 | 100.00% |
 
-Tabla 7.3. Adherencia estructural medida al cierre del documento
+Tabla 7.4. Adherencia estructural medida al cierre del documento
 (`doc/tables/adherence.md`). La tabla se actualiza al ejecutar
 `python experiments/adherence_metric.py` y crecerá con filas adicionales
 conforme las configuraciones multi-agente completen ejecuciones.
@@ -322,8 +322,8 @@ Para regenerar todas las figuras y tablas de este capítulo en cualquier
 momento, basta con:
 
 ```bash
-python experiments/analyze_results.py     # figuras 7.1–7.3 + tabla 7.2
-python experiments/adherence_metric.py    # tabla 7.3
+python experiments/analyze_results.py     # figuras 7.1–7.3 + tablas 7.2, 7.3 y 7.5
+python experiments/adherence_metric.py    # tabla 7.4
 ```
 
 Listado 7.1. Comandos de regeneración de las figuras y tablas del capítulo.

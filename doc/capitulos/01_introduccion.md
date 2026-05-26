@@ -93,9 +93,12 @@ Las contribuciones concretas del trabajo son cinco:
    flujo de control condicional, publicada como repositorio
    reproducible en GitHub.
 2. Las tres variantes de ablación de rol (`no_pm`,
-   `no_architect`, `no_reviewer`), que aíslan empíricamente la
-   contribución individual de cada agente al rendimiento global,
-   un análisis que la literatura habitualmente omite.
+   `no_architect`, `no_reviewer`) implementadas y preparadas para
+   ejecución, que permiten aislar la contribución individual de cada
+   agente al rendimiento global — un análisis que la literatura
+   habitualmente omite. La corrida principal del TFG cubre las tres
+   configuraciones canónicas (baseline, secuencial, self-reflection);
+   las ablaciones quedan listas en el runner para una segunda pasada.
 3. La métrica de adherencia estructural, que cuantifica con un
    número la afirmación —común en la literatura pero rara vez
    medida— de que el protocolo por artefactos reduce las
@@ -119,8 +122,10 @@ El capítulo 8 recoge las conclusiones y abre líneas de trabajo
 futuro.
 
 Seis anexos completan el documento. El Anexo A reproduce verbatim los
-prompts de sistema y las plantillas de prompt de usuario de los seis
-agentes. El Anexo B sintetiza las decisiones técnicas tomadas sprint
+prompts de sistema y las plantillas de prompt de usuario de los cinco
+roles del pipeline (PM, Arquitecto, Developer, QA Tester, Code Reviewer)
+y del baseline monolítico, incluyendo la variante de Developer Reflexivo
+empleada en la configuración con self-reflection. El Anexo B sintetiza las decisiones técnicas tomadas sprint
 a sprint. El Anexo C consolida los comandos de reproducción del
 experimento. El Anexo D recoge un glosario de acrónimos y términos.
 El Anexo E aborda los aspectos éticos, legales y de sostenibilidad

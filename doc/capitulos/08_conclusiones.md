@@ -38,7 +38,8 @@ del documento.
 Dos objetivos quedan en estado distinto a "cumplido". El OE5 está
 ejecutándose en el momento de cerrar el documento: la infraestructura del
 banco es completa y resumible, y la cardinalidad del experimento avanza
-hacia las 2 460 ejecuciones de la matriz principal. El OE6 depende del
+hacia las 1 476 ejecuciones de la matriz principal (3 configuraciones ×
+164 problemas × 3 semillas). El OE6 depende del
 OE5: el análisis cualitativo comparativo entre configuraciones —dónde gana
 el pipeline complejo y dónde no— sólo se puede ejecutar sobre los CSV de
 todas las configuraciones. La parte cualitativa del OE6 que es

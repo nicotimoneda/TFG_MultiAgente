@@ -15,14 +15,18 @@ que indexa la réplica. La tabla 6.1 enumera los puntos de cada dimensión.
 
 Tabla 6.1. Dimensiones de la matriz experimental completa.
 
-El total efectivo de la corrida principal corresponde a la versión reducida
-sobre HumanEval únicamente y las cinco configuraciones originales (baseline,
-sequential, self_reflection_r1/r2/r3): 164 × 3 × 5 = 2 460 ejecuciones. Las
-ablaciones y la inclusión de MBPP se contemplan como segunda pasada del runner,
-aprovechando la propiedad de resumibilidad descrita en la sección 5.8: tanto
-el cache local de MBPP (`experiments/cache/mbpp.json`) como el registro de
-configuraciones del runner están ya preparados para esa pasada, y reincorporar
-benchmarks o configuraciones no obliga a re-ejecutar nada de lo ya completado.
+El total efectivo de la corrida principal corresponde a la versión
+recortada por decisión de scope (S8 del anexo de decisiones): se evalúan
+las tres configuraciones canónicas —baseline, sequential y
+self_reflection_r1— sobre HumanEval únicamente, con tres semillas por
+configuración. Eso suma 3 × 164 × 3 = **1 476 ejecuciones**. Las
+variantes de self-reflection con `max_revisions` mayor (r2, r3), las
+tres ablaciones y la inclusión de MBPP quedan preparadas en el runner
+como segunda pasada, gracias a la propiedad de resumibilidad descrita
+en la sección 5.8: tanto el cache local de MBPP
+(`experiments/cache/mbpp.json`) como el registro de configuraciones del
+runner están ya listos para retomarlas, y reincorporar benchmarks o
+configuraciones no obliga a re-ejecutar nada de lo ya completado.
 
 La figura 6.1 reproduce, a nivel del banco experimental, el diagrama
 de flujo de la sección 4.4 (figura 4.1). En este capítulo la figura
@@ -159,7 +163,7 @@ CSV de cada configuración y produce el ratio:
 $$\text{adherencia} = 1 - \frac{\#\text{ejecuciones con aviso estructural}}{\#\text{ejecuciones totales}}$$
 
 La métrica es post-hoc, read-only y se calcula sin re-invocar al LLM. Su
-resultado se reporta como porcentaje en la tabla 7.3 del capítulo de
+resultado se reporta como porcentaje en la tabla 7.4 del capítulo de
 resultados.
 
 ### 6.4.5. Intervalos de confianza

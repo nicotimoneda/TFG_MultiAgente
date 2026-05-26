@@ -22,8 +22,9 @@ enfoque propuesto y situar el trabajo respecto a la literatura existente.
 
 **OE2.** Diseñar una arquitectura multi-agente con cinco roles especializados
 —Product Manager, Arquitecto, Developer, QA Tester y Code Reviewer— coordinados
-por un agente supervisor, con estado compartido tipado y comunicación estructurada
-mediante artefactos.
+por un grafo de estado tipado en LangGraph, con comunicación estructurada
+mediante artefactos y aristas condicionales que permitan ramificaciones del
+flujo en función del estado compartido.
 
 **OE3.** Implementar un baseline LLM monolítico como referencia comparativa,
 que utilice el mismo modelo base y el mismo schema de evaluación que el sistema
@@ -35,10 +36,14 @@ un número máximo de iteraciones, que permita refinar el código generado sin
 intervención humana.
 
 **OE5.** Evaluar empíricamente las tres configuraciones del sistema —baseline,
-multi-agente secuencial y multi-agente con self-reflection— sobre HumanEval y un
-subconjunto de MBPP, reportando pass@1, pass@k, average test pass rate, coste en
-tokens y latencia, con análisis estadístico mediante test de McNemar e intervalos
-de confianza bootstrap al 95%.
+multi-agente secuencial y multi-agente con self-reflection (`max_revisions = 1`)—
+sobre HumanEval (versión EvalPlus, 164 problemas) con tres semillas por
+configuración, reportando pass@1, pass@3, tasa media de superación de pruebas,
+coste en tokens y latencia. El análisis estadístico incluye test de McNemar
+pareado sobre los resultados pass/fail e intervalos de confianza bootstrap
+al 95 % para las métricas continuas. MBPP y las variantes adicionales de
+self-reflection (`r2`, `r3`) y de ablación quedan preparadas en el runner
+para una segunda pasada cuando el presupuesto de cómputo lo permita.
 
 **OE6.** Analizar cualitativamente el comportamiento del sistema e identificar
 bajo qué condiciones —tipo de problema, complejidad, número de iteraciones— el
@@ -103,9 +108,13 @@ instrumental o nula.
 
 El trabajo abarca el diseño, implementación y evaluación de tres configuraciones:
 baseline monolítico, sistema multi-agente secuencial y sistema multi-agente con
-self-reflection. La evaluación cubre HumanEval completo y un subconjunto de 200
-problemas de MBPP, con análisis cuantitativo estadístico y análisis cualitativo
-del comportamiento del sistema.
+self-reflection. La corrida principal cubre HumanEval completo (164 problemas)
+con tres semillas por configuración, sobre Qwen 2.5 Coder 7B Instruct servido en
+local con Ollama. MBPP y las variantes SR_r2/r3 y de ablación quedan preparadas
+en el runner pero se posponen a una segunda pasada: la corrida principal ya
+consume varios días de cómputo continuo, y el presupuesto disponible para el TFG
+no admite escalarla sin recortar otras partidas. La justificación cuantitativa
+de este recorte se documenta en S8 del anexo de decisiones técnicas.
 
 SWE-bench completo no se incluye en la evaluación. Sus problemas requieren
 reproducir entornos Docker de repositorios externos con dependencias variables,
