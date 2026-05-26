@@ -63,8 +63,11 @@ solicita cambios, el control vuelve al Developer para una nueva iteración.
 El número de iteraciones realizadas se registra en el campo revision_count del
 estado compartido. El parámetro max_revisions actúa como hiperparámetro del
 sistema: fija el número máximo de ciclos Reviewer→Developer antes de forzar la
-terminación, independientemente del resultado de la revisión. En los experimentos
-se evalúan valores de max_revisions ∈ {1, 2, 3}.
+terminación, independientemente del resultado de la revisión. La corrida
+principal del TFG fija `max_revisions = 1`; las variantes con
+`max_revisions ∈ {2, 3}` quedan implementadas y disponibles en el runner
+para una segunda pasada, según la decisión de scope S8 documentada en el
+anexo de decisiones técnicas.
 
 ## 4.3. Stack tecnológico y justificación
 
@@ -197,8 +200,10 @@ test_pass_rate, tokens_input, tokens_output, latency_seconds y revision_count
 Para comparar las tasas de pass@1 entre configuraciones se aplica el test de
 McNemar pareado, apropiado para comparar dos clasificadores sobre los mismos
 problemas. Para las métricas continuas —tasa de superación de pruebas, coste en
-tokens, latencia— se calculan intervalos de confianza al 95% mediante bootstrap
-con 10.000 remuestras.
+tokens, latencia— se calculan intervalos de confianza al 95 % mediante
+bootstrap percentil con 2 000 remuestras por configuración. La
+implementación, con semilla fija para reproducibilidad, está en
+`experiments/analyze_results.py`.
 
 ## 4.5. Consideraciones de reproducibilidad
 

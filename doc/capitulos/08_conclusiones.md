@@ -74,9 +74,9 @@ por restricciones de cómputo.
 
 **Sobre H3 (trade-off coste-calidad).** **Rechazada con dirección
 invertida.** La hipótesis postulaba un trade-off cuantificable según
-la dificultad del problema, con el beneficio del pipeline complejo
-disminuyendo en problemas simples. Los datos contradicen el supuesto
-sobre el que se construyó la hipótesis: el pipeline complejo no aporta
+la dificultad del problema, de modo que el beneficio del pipeline
+complejo sería menor en problemas simples. Los datos contradicen el
+supuesto sobre el que se construyó la hipótesis: el pipeline complejo no aporta
 beneficio en ningún rango. El multi-agente paga 40 veces más tokens y
 77 veces más latencia que el baseline para obtener peor pass@1, y la
 frontera de Pareto coste-calidad la ocupa por completo el baseline. No

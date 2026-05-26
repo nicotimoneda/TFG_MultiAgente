@@ -268,10 +268,17 @@ incluir en su salida.
 
 ## 5.6. Variantes de ablación
 
-La propuesta del trabajo identifica como contribución innovadora el análisis
-de qué combinaciones de roles aportan más valor. Para cuantificarlo se
-implementan tres variantes que eliminan exactamente un rol del pipeline
-secuencial, manteniendo el resto idéntico:
+La propuesta del trabajo identificaba como contribución innovadora el
+análisis de qué combinaciones de roles aportan más valor. Para
+cuantificarlo se implementan tres variantes que eliminan exactamente un
+rol del pipeline secuencial, manteniendo el resto idéntico. La corrida
+principal del TFG (3 configs × 164 problemas × 3 semillas = 1 476
+ejecuciones) ya consume varios días de cómputo continuo en el equipo
+de referencia, por lo que la evaluación de las ablaciones queda
+preparada en el runner como segunda pasada (entrada S8 del anexo de
+decisiones). Las variantes están implementadas y testadas, y se
+documentan aquí por su valor como contribución arquitectural reutilizable
+y como punto de partida para el trabajo futuro de la sección 8.7.
 
 | Variante | Topología | Hipótesis que aísla |
 |---|---|---|
@@ -312,21 +319,28 @@ variable de entorno `LLM_BACKEND`:
 
 Ambos backends exponen una interfaz compatible con OpenAI, lo que permite
 encapsular su selección en una sola función `create_chat_client(model_name,
-temperature=0.2)` que devuelve un cliente LangChain configurado. Los agentes
-desconocen qué backend está activo: reciben el cliente ya construido y lo
-usan a través de la interfaz uniforme de LangChain. Esta abstracción cumple
-dos funciones simultáneas: permite re-ejecutar verificaciones cruzadas
-sobre subconjuntos con un modelo de mayor capacidad sin tocar la lógica del
-pipeline, y desacopla la elección del backend de la corrida principal.
+temperature=0.2)` que devuelve un cliente LangChain configurado. Los
+agentes desconocen qué backend está activo: reciben el cliente ya
+construido y lo usan a través de la interfaz uniforme de LangChain. El
+backend Cerebras se evaluó durante la planificación y se descartó para
+la corrida principal por incompatibilidad del rate limit del tier público
+con la cardinalidad de la matriz (entrada S8 del anexo de decisiones);
+queda, sin embargo, disponible como mecanismo de verificación cruzada
+sobre subconjuntos pequeños con un modelo de mayor capacidad, sin
+modificaciones en la lógica del pipeline.
 
 ## 5.8. Runner experimental
 
 El runner principal (`experiments/run_experiments.py`) recibe como
 argumentos la lista de configuraciones a evaluar, los benchmarks, las
 seeds y el modelo, y construye una matriz cartesiana de ejecuciones. La
-matriz completa contempla ocho configuraciones (baseline, sequential,
-self_reflection_r1/r2/r3 y las tres ablaciones) por tres seeds por el
-total de problemas del benchmark.
+matriz definida en código contempla ocho configuraciones (baseline,
+sequential, self_reflection_r1/r2/r3 y las tres ablaciones) por tres
+seeds por el total de problemas del benchmark. La corrida principal
+ejecuta el subconjunto canónico (baseline, sequential, SR_r1) sobre
+HumanEval, según la decisión de scope S8; el resto de la matriz
+permanece disponible como segunda pasada sin modificaciones en el
+código.
 
 Tres propiedades del runner merecen mención: la resumibilidad, la
 atomicidad y la tolerancia a fallos.

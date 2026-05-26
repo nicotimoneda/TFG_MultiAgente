@@ -41,12 +41,12 @@ implementadas en el runner y disponibles para una segunda pasada. La
 pregunta concreta del trabajo es si la especialización por roles y la
 orquestación explícita producen mejoras medibles sobre HumanEval con
 un modelo de 7 B parámetros desplegado en local, y a qué coste. La
-respuesta empírica del experimento —que se anticipa aquí para evitar
-sorpresas al lector— es que, en ese régimen, el pipeline multi-agente
-no supera al baseline. Por qué ocurre eso, qué literatura crítica
-reciente apunta en la misma dirección, y qué condiciones podrían
-revertir el resultado son las preguntas que vertebran el resto del
-documento.
+respuesta del experimento, que conviene anticipar aquí para no
+generar falsas expectativas en el lector, es que en ese régimen el
+pipeline multi-agente no supera al baseline. El resto del documento
+se dedica a explicar por qué, a situar el resultado dentro de una
+discusión crítica reciente de la literatura, y a delimitar las
+condiciones bajo las cuales cabría esperar lo contrario.
 
 La tabla 1.1 anticipa, en forma sintética, qué limitaciones del LLM
 monolítico el sistema propuesto pretende neutralizar y cómo. Los
