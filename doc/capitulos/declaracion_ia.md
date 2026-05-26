@@ -41,15 +41,21 @@ Los siguientes elementos del trabajo han sido producidos
   Jefe de Estudios.
 - Las decisiones de scope sobre qué configuraciones evaluar, qué
   benchmarks utilizar y qué hipótesis contrastar.
-- La interpretación cualitativa del estudio piloto (capítulo 7,
-  sección 7.2).
-- La discusión de resultados y las conclusiones por hipótesis del
-  capítulo 8.
+- La interpretación cualitativa del estudio piloto exploratorio
+  (capítulo 7, sección 7.2).
+- El veredicto interpretativo de los resultados (rechazo de H1 y
+  H3, no concluyente para H2) y la identificación de las tres
+  causas plausibles del hallazgo negativo (propagación de errores,
+  sobrecarga del prompt en modelos pequeños, inadecuación de
+  HumanEval para evaluar pipelines multi-agente).
 
 Los siguientes elementos han sido **asistidos por IA pero revisados,
 editados y validados por el autor**:
 
-- Borradores de los capítulos 1 a 8 y los anexos A a F.
+- Borradores de los capítulos 1 a 8 y los anexos A a F, incluyendo
+  la redacción final de la discusión por hipótesis del capítulo 8 y
+  del análisis cualitativo del capítulo 7.7 a partir de los puntos
+  interpretativos definidos por el autor.
 - El código fuente bajo `src/`, `experiments/`, `tests/` y
   `scripts/`.
 - La generación de las figuras de los grafos y del diagrama de

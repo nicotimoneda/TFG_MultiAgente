@@ -9,15 +9,16 @@ parte de un comité institucional.
 
 ## E.1. Naturaleza de los datos utilizados
 
-El estudio no procesa datos personales ni datos sensibles. Los dos
-benchmarks empleados —HumanEval y MBPP— están compuestos por
-problemas sintéticos de programación, redactados por sus autores
-para evaluar modelos. No contienen información identificable, ni
-metadatos personales, ni texto extraído de comunicaciones privadas.
-HumanEval se publica bajo licencia MIT por OpenAI; MBPP está
-publicado por Google Research bajo Apache 2.0. La inclusión de
-ambos benchmarks en este trabajo respeta los términos de sus
-respectivas licencias.
+El estudio no procesa datos personales ni datos sensibles. El
+benchmark utilizado en la corrida principal —HumanEval, versión
+EvalPlus— está compuesto por problemas sintéticos de programación,
+redactados por sus autores para evaluar modelos. No contiene
+información identificable, ni metadatos personales, ni texto
+extraído de comunicaciones privadas. HumanEval se publica bajo
+licencia MIT por OpenAI; el cache de MBPP que el runner mantiene
+para una eventual segunda pasada está publicado por Google Research
+bajo Apache 2.0. La inclusión de ambos benchmarks en este trabajo
+respeta los términos de sus respectivas licencias.
 
 En consecuencia, este TFG queda fuera del alcance del Reglamento
 General de Protección de Datos (RGPD, Reglamento UE 2016/679) por
@@ -36,9 +37,12 @@ licencia original.
 El proyecto soporta como backend alternativo **Cerebras Inference**,
 que ofrece acceso gratuito a varios modelos open-weight (entre
 ellos las familias Qwen y Llama de Meta) bajo sus términos de
-servicio públicos. La verificación cruzada que en su momento se
-planteó con Qwen-3 235B o Llama 3.1 se contempló dentro de los
-límites del tier gratuito, sin recurrir a ningún plan de pago.
+servicio públicos. Las pruebas exploratorias se realizaron
+exclusivamente dentro del tier gratuito y se descartaron por
+incompatibilidad del rate limit con la cardinalidad de la matriz
+(entrada S8 del Anexo B), sin recurrir a ningún plan de pago. La
+opción queda disponible en el factory de clientes para subsets
+puntuales en futuras extensiones.
 
 Todos los modelos utilizados son **open-weight**: los pesos están
 publicados y son auditables. Esta elección se ajusta a las
@@ -113,25 +117,49 @@ transparencia y documentación recogidas más arriba.
 
 La corrida experimental se ejecuta sobre un único MacBook Air con
 chip Apple M2, un equipo de consumo energético reducido (potencia
-máxima nominal de 30 W, típicamente <20 W durante inferencia con
-modelos cuantizados). La duración estimada de la corrida principal
-es de aproximadamente 9-10 días de cómputo desatendido.
+máxima nominal de 30 W, típicamente 15-20 W durante inferencia con
+modelos cuantizados sobre Apple Silicon).
 
-Una estimación conservadora del consumo total es:
+El cálculo del consumo se hace directamente a partir de la latencia
+acumulada que el runner registra para cada ejecución, no a partir
+de una estimación genérica. La tabla 7.2 (capítulo 7, corrida al
+cierre del documento) reporta los siguientes tiempos de cómputo
+bajo carga:
 
-- Potencia media bajo carga continua: ≈ 18 W
-- Duración: ≈ 220 horas
-- Energía total: ≈ 4 kWh
-- Huella de carbono equivalente (mix eléctrico español 2024,
-  ~0.16 kgCO₂/kWh): ≈ 0.6 kg CO₂eq
+| Configuración | n | Latencia media (s) | Tiempo bajo carga (h) |
+|---|---:|---:|---:|
+| Baseline | 492 | 5,13 | 0,70 |
+| Sequential | 492 | 396,35 | 54,17 |
+| SR (r=1) | 211 | 386,79 | 22,67 |
+| **Total agregado** | **1 195** | — | **≈ 77,5** |
+
+A esto se suma el overhead del proceso runner, del servidor Ollama
+en idle entre ejecuciones y de la sesión interactiva de monitorización
+(estimado en ~5 W durante el resto del wall-clock de los ~7 días
+que dura la corrida, ≈ 91 h adicionales a media potencia).
+
+Con potencia media bajo carga de 18 W e idle de 5 W, el consumo
+total estimado es:
+
+- Inferencia bajo carga: 77,5 h × 18 W ≈ **1,40 kWh**.
+- Overhead en idle: 91 h × 5 W ≈ **0,46 kWh**.
+- **Total: ≈ 1,86 kWh**.
+
+Con el mix eléctrico español de 2024 (≈ 0,16 kg CO₂eq/kWh, según el
+factor de emisión publicado por Red Eléctrica de España), la huella
+de carbono del experimento principal es de **≈ 0,30 kg CO₂eq**,
+equivalente al orden de magnitud de un ciclo medio de lavadora
+doméstica.
 
 La elección deliberada de un modelo cuantizado de 7 B parámetros y
 de hardware local de bajo consumo —frente a alternativas como
-modelos de frontera servidos en datacenters comerciales— sitúa el
-coste energético del experimento en el orden de magnitud de la
-carga de un par de smartphones durante un año. Esta consideración
-forma parte del razonamiento de scope documentado en el capítulo 3
-y en el Anexo B.
+modelos de frontera servidos en datacenters comerciales, cuyo coste
+energético por inferencia es uno o dos órdenes de magnitud
+superior— sitúa este TFG en el rango bajo del espectro de impacto
+ambiental para investigación en LLMs. La decisión de scope
+documentada en el capítulo 3 y en el Anexo B (entrada S8), tomada
+por restricciones de plazo y hardware, tiene como efecto colateral
+una huella de cómputo modesta y trazable.
 
 ## E.6. Reproducibilidad como obligación ética
 
