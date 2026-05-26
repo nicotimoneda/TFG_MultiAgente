@@ -332,11 +332,32 @@ indicaría lo contrario.
 La hipótesis H3 postula que el beneficio relativo del pipeline complejo
 disminuye en problemas de baja complejidad. Para contrastarla se segmenta
 el conjunto de problemas según la dispersión de pass@1 entre
-configuraciones —spread = max − min sobre las configs— y se compara el
-ratio calidad/coste por categoría. El informe automático
-`doc/tables/problem_difficulty.md` lista el top-20 de problemas con
-mayor spread, que constituye el subconjunto más informativo para esta
-discusión.
+configuraciones —spread = max − min sobre las configs— y se inspecciona
+el listado de problemas con mayor desacuerdo
+(`doc/tables/problem_difficulty.md`).
+
+El dato más informativo del top-20 es la dirección del desacuerdo. En
+**16 de los 20 problemas con spread máximo (100 %)**, el baseline
+acierta el 100 % de réplicas mientras el pipeline secuencial falla el
+100 %. Ningún problema del top-20 presenta la dirección opuesta
+—sequential del 100 % con baseline del 0 %—. El desacuerdo no es
+simétrico: el spread alto se concentra en problemas donde el pipeline
+introduce errores que el baseline no comete, no al revés.
+
+El segundo dato relevante es la naturaleza de esos problemas. La
+inspección manual de los enunciados (sección 7.7) muestra que el
+top-20 no se concentra en los problemas más difíciles del benchmark,
+sino en los más sencillos: funciones de una o dos líneas
+(`filter_by_substring`, `filter_by_prefix`, `get_positive`,
+`is_palindrome`, `rolling_max`) y problemas con una restricción
+semántica concreta que el pipeline pierde por el camino
+(`is_sorted` con regla de duplicados, `decode_cyclic` como inversa de
+una función dada, `prod_signs` con caso `None`). El patrón cualitativo
+contradice la hipótesis H3 en su dirección original: el pipeline no
+sale mejor en problemas complejos, sino que **falla precisamente en
+los problemas más simples** donde un único agente bien promptado
+resuelve directamente. La hipótesis H3 queda, por tanto, rechazada con
+dirección invertida también en su dimensión por-dificultad.
 
 ### 7.6.4. Ablaciones de rol
 
@@ -356,7 +377,140 @@ Los resultados de cada comparación se reportarán como diferencia pareada
 con su intervalo de confianza bootstrap, junto con el ratio
 calidad-por-token de cada variante.
 
-## 7.7. Reproducción de los resultados
+## 7.7. Análisis cualitativo: tipología de los fallos del pipeline
+
+Los números agregados de la sección 7.3 dicen *cuánto* pierde el
+pipeline frente al baseline; no dicen *por qué*. Esta sección
+inspecciona el listado de problemas con mayor desacuerdo entre
+configuraciones (tabla `doc/tables/problem_difficulty.md`,
+sección 7.6.3) y propone una tipología en tres patrones recurrentes.
+Para cada patrón se reproduce el enunciado original y se observa el
+comportamiento de cada configuración. El objetivo no es agotar la
+casuística sino ilustrar qué *clase* de fallo distingue al pipeline
+del baseline, dado que las trazas completas de cada agente no se
+persisten por ejecución y la inferencia detallada exigiría re-correr
+el pipeline con logging extendido.
+
+### 7.7.1. Patrón A: sobreingeniería de problemas triviales
+
+Una proporción importante del top-20 son problemas cuya solución
+canónica cabe en una línea. La tabla 7.6 reproduce cinco ejemplos.
+
+| Problema | Esencia del enunciado | Solución canónica (pseudocódigo) | Baseline | Sequential | SR (r=1) |
+|---|---|---|---:|---:|---:|
+| HumanEval/0 | `has_close_elements(numbers, threshold)`: ¿hay dos números a distancia menor que el umbral? | doble bucle anidado, una condición | 100 % | 0 % | 0 % |
+| HumanEval/7 | `filter_by_substring(strings, substring)`: filtrar strings que contengan el substring | `[s for s in strings if substring in s]` | 100 % | 0 % | 67 % |
+| HumanEval/29 | `filter_by_prefix(strings, prefix)`: filtrar strings que empiecen por el prefijo | `[s for s in strings if s.startswith(prefix)]` | 100 % | 0 % | 67 % |
+| HumanEval/30 | `get_positive(l)`: devolver los números positivos de la lista | `[x for x in l if x > 0]` | 100 % | 0 % | 67 % |
+| HumanEval/48 | `is_palindrome(text)`: ¿es la cadena un palíndromo? | `text == text[::-1]` | 100 % | 0 % | 0 % |
+
+Tabla 7.6. Problemas del Patrón A: solución canónica de una línea
+donde el baseline acierta el 100 % y el pipeline secuencial falla el
+100 %.
+
+La hipótesis cualitativa es que el flujo PM → Arquitecto → Developer
+convierte un problema que admite una expresión directa en una
+especificación con criterios de aceptación, casos límite, plan de
+implementación y consideraciones de fallo (véase el recorrido completo
+del listado 5.4 al 5.8 de la sección 5.9, sobre HumanEval/1). El
+Developer, condicionado por un `design_doc` elaborado con estructuras
+intermedias y consideraciones de robustez, produce código más complejo
+del necesario y, al hacerlo, introduce fallos en casos límite que la
+solución de una línea no tenía. El baseline recibe el enunciado
+original sin reformular y opta por la expresión canónica.
+
+Self-reflection recupera parcialmente en tres de los cinco casos
+(HE/7, HE/29, HE/30), lo que sugiere que cuando el primer fallo es
+detectable mediante los tests del QA Tester, una segunda pasada del
+Developer con feedback explícito basta para alcanzar la solución
+correcta. En los otros dos casos (HE/0, HE/48) ni siquiera el bucle
+recupera, lo que indica que el Developer reflexivo repite el patrón
+de sobreingeniería del primer intento.
+
+### 7.7.2. Patrón B: erosión de detalles semánticos en la traducción a PRD
+
+Un segundo bloque del top-20 son problemas con una restricción
+semántica concreta que aparece en el enunciado original pero que
+puede perderse al traducirlo a documento de requisitos.
+
+| Problema | Restricción semántica del enunciado | Baseline | Sequential | SR (r=1) |
+|---|---|---:|---:|---:|
+| HumanEval/38 | `decode_cyclic` debe ser la **inversa** de `encode_cyclic`, que está dada en el prompt | 100 % | 0 % | 0 % |
+| HumanEval/126 | `is_sorted` devuelve `False` si hay **más de un duplicado** del mismo número | 100 % | 0 % | — |
+| HumanEval/128 | `prod_signs` devuelve `None` para lista vacía | 100 % | 0 % | — |
+| HumanEval/70 | `strange_sort_list` alterna mínimo, máximo, mínimo, máximo... del resto | 100 % | 0 % | 100 % |
+
+Tabla 7.7. Problemas del Patrón B: una restricción semántica concreta
+que el pipeline pierde por el camino.
+
+El caso más claro es HumanEval/38. El prompt original contiene la
+función `encode_cyclic` ya implementada y pide a continuación
+`decode_cyclic` como su inversa. El baseline tiene la implementación
+de `encode_cyclic` delante y deriva la inversa directamente; el
+pipeline pasa el enunciado por el Product Manager y luego por el
+Arquitecto, y en algún punto de esa traducción se pierde la pista
+explícita de la inversión. El Developer recibe un PRD y un diseño
+que describen «codificación cíclica» sin la restricción de
+inversión, e implementa una segunda función que aplica la misma
+transformación que `encode_cyclic` en vez de la opuesta. Es
+literalmente uno de los modos de error que el estudio piloto
+(sección 7.2) había anticipado para el agente monolítico, y que
+aquí reaparece amplificado en el multi-agente.
+
+HumanEval/70 es un caso interesante en sentido contrario: el
+pipeline secuencial falla el 100 % pero SR_r1 recupera el 100 %. La
+especificación («empieza con el mínimo, luego el máximo, luego el
+mínimo de los restantes...») es suficientemente concreta como para
+que el QA Tester detecte la implementación incorrecta y el ciclo de
+revisión llegue a la solución correcta en la segunda pasada. Cuando
+los tests del benchmark son discriminativos, el bucle Reviewer →
+Developer hace su trabajo; cuando los tests no separan el bug del
+acierto (HE/38 con la inversión, HE/126 con la regla de duplicados),
+self-reflection tampoco recupera.
+
+### 7.7.3. Patrón C: convergencia rápida del bucle de self-reflection
+
+El 61,14 % de las ejecuciones de SR_r1 aprueba sin ninguna revisión
+(sección 7.6.2). El 38,86 % restante dispara una iteración del bucle
+Reviewer → Developer. Cruzando esa distribución con el comportamiento
+por problema, se observa que el bucle se activa precisamente en los
+problemas del Patrón A y B, donde el primer intento del Developer
+falla los tests del QA Tester. La eficacia del ciclo no es uniforme:
+ya se ha visto que en algunos casos (HE/7, HE/29, HE/30, HE/70) la
+segunda pasada produce código correcto, mientras que en otros
+(HE/0, HE/38, HE/48) el Developer reflexivo reproduce el error del
+primer intento o introduce uno nuevo.
+
+La temperatura asimétrica del Developer reflexivo (0,4 frente al
+0,2 del resto de agentes, sección 5.4.3) está diseñada precisamente
+para favorecer la exploración de soluciones alternativas durante la
+revisión. Los datos confirman que esa diversidad ayuda cuando los
+tests dan señal clara y no ayuda cuando el problema no la da.
+
+### 7.7.4. Síntesis cualitativa
+
+Los tres patrones convergen en una observación que el análisis
+cuantitativo no captura: el pipeline multi-agente con un modelo de
+7 B parámetros no falla por *insuficiencia* sino por *sobreesfuerzo*.
+Los modos de error dominantes —sobreingeniería de problemas
+triviales (Patrón A) y erosión de restricciones semánticas durante
+la traducción entre agentes (Patrón B)— son consecuencia directa de
+introducir estructura intermedia cuando la tarea no la requiere. El
+baseline gana porque trabaja sin esa estructura. Self-reflection
+recupera parcialmente cuando los tests del benchmark generan señal
+discriminativa para el bucle, pero no inventa información que el
+pipeline ha perdido antes.
+
+Esta lectura cualitativa es consistente con la discusión del
+capítulo 8 sobre los regímenes en los que cabe esperar que el
+multi-agente sí aporte valor: tareas que requieren coordinación
+entre fases con artefactos genuinamente distintos (requisitos,
+diseño, código, pruebas) y modelos con capacidad suficiente para
+sostener la sobrecarga del protocolo. HumanEval, con sus funciones
+aisladas y especificaciones cerradas, no cumple ni una ni otra
+condición.
+
+## 7.8. Reproducción de los resultados
 
 Para regenerar todas las figuras y tablas de este capítulo en cualquier
 momento, basta con:

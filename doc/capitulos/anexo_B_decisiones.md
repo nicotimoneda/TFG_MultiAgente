@@ -59,15 +59,25 @@ definición. Las tres semillas del experimento indexan **réplicas del
 experimento**, no semillas del modelo: cada réplica constituye una
 muestra independiente de la distribución de salidas del pipeline.
 
-## B.6. Sprint S6 — Backend local (Ollama) como referencia y Cerebras como verificación
+## B.6. Sprint S6 — Backend local (Ollama) como referencia, Cerebras evaluado y descartado
 
 El backend principal de inferencia es Ollama local con
 `qwen2.5-coder:7b-instruct-q4_K_M`. La elección equilibra
 reproducibilidad —cualquier investigador con el binario público puede
 replicar la corrida— con eliminación del coste marginal por inferencia.
-La variable `LLM_BACKEND` permite alternar a Cerebras (Qwen-3 235B) para
-verificaciones cruzadas sobre subconjuntos sin tocar la lógica del
-pipeline.
+
+La alternativa de Cerebras Inference (Qwen-3 235B y Llama 3.1 8B en
+tier gratuito) se evaluó empíricamente durante S6 y se descartó: bajo
+la carga real de un pipeline con 5-6 llamadas concatenadas por
+problema, el rate limit del tier público (≈1-2 req/min sostenido tras
+errores 429) hace inviable cubrir la matriz experimental en plazo. Se
+probaron pacing artificial de 2,5 s entre llamadas y workers en {1, 3}
+sin que el límite cediera. El detalle cuantitativo de las pruebas está
+en la entrada D1 del documento canónico `doc/decisiones.md`.
+
+La variable `LLM_BACKEND` permite alternar a Cerebras desde código sin
+tocar el pipeline, lo que mantiene abierta la opción para verificaciones
+cruzadas sobre subconjuntos pequeños con un plan de pago futuro.
 
 ## B.7. Sprint S7 — Ablaciones, análisis y métrica de adherencia
 
@@ -81,7 +91,52 @@ y una métrica de adherencia estructural que cuenta ejecuciones con fence
 malformado. La alternativa de ampliar el banco con SWE-bench se descarta
 por presupuesto de cómputo, recogido en cap 3.4 y cap 8.5.
 
-## B.8. Notas sobre el feedback del tutor
+## B.8. Sprint S8 — Recorte de scope del barrido principal
+
+Tras 18 horas de corrida con el backend local sobre el MacBook Air
+M2, el ritmo observado sostenido (≈5,3 ejecuciones/hora para
+secuencial, ≈12-16 min/ejecución para self-reflection) proyectaba la
+matriz completa de 5 configuraciones (baseline + sequential + SR×3)
+sobre 164 problemas × 3 semillas en aproximadamente 20 días, y en 30
+días añadiendo las tres ablaciones. Con la entrega institucional el
+8 de junio de 2026 y la imposibilidad de sostener al equipo bajo
+carga térmica continua durante semanas (el MacBook Air M2 carece de
+ventilación activa), el plazo no permitía la matriz completa.
+
+**Decisión.** Mantener Ollama local como backend y recortar el
+barrido principal a las **tres configuraciones más informativas**
+para las hipótesis del estudio:
+
+1. `baseline` (configuración 1, monolítica)
+2. `sequential` (configuración 2, pipeline de 5 roles)
+3. `self_reflection_r1` (configuración 3 con `max_revisions = 1`)
+
+Las variantes `self_reflection_r2`, `self_reflection_r3` y las tres
+ablaciones (`no_pm`, `no_architect`, `no_reviewer`) quedan
+implementadas, testadas y disponibles en el runner como segunda
+pasada, activables mediante variables de entorno
+(`ENABLE_SR_R2`, `ENABLE_SR_R3`, `ABLATION_SUBSET_SIZE`) sin
+modificar código.
+
+**Justificación académica.** Las tres configuraciones conservadas
+cubren las tres hipótesis del estudio: H1 (especialización) se
+contrasta con baseline vs sequential; H2 (auto-revisión) con
+sequential vs SR_r1; H3 (trade-off coste-calidad) con los tres
+puntos en la frontera de Pareto. SR_r2 y SR_r3 son experimentos
+de hiperparámetro que no son necesarios para contrastar H2. Las
+ablaciones quedan para una segunda corrida.
+
+**Coste.** Cero coste económico (Ollama local). El equipo opera bajo
+throttling térmico moderado durante ~9 días, reversible y dentro de
+tolerancias del fabricante. La cardinalidad efectiva del experimento
+queda en 3 × 164 × 3 = **1 476 ejecuciones**, todas reportadas en el
+capítulo 7.
+
+El detalle completo de esta decisión, incluyendo las pruebas
+empíricas de Cerebras descartadas, está en la entrada S8 de
+`doc/decisiones.md`.
+
+## B.9. Notas sobre el feedback del tutor
 
 Dos observaciones del tutor han condicionado la forma final del
 documento: la bibliografía no se duplica al final de cada capítulo; toda

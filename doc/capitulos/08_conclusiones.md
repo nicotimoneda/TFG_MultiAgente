@@ -29,7 +29,7 @@ cuándo se vuelva a tirar el análisis.
 | OE3 — Baseline LLM monolítico | Cumplido | Sección 5.4.1, `src/graph/baseline_graph.py` |
 | OE4 — Mecanismo de auto-revisión | Cumplido | Sección 5.4.3, `src/graph/self_reflection_graph.py` |
 | OE5 — Evaluación empírica | Cumplido en lo esencial, en cierre para SR_r1 | Baseline y sequential completos (492 runs cada uno); SR_r1 al 43 % (211/492) y avanzando |
-| OE6 — Análisis cualitativo | Parcial | Estudio piloto en 7.2; análisis por dificultad del problema (H3) pendiente del cierre de SR_r1 |
+| OE6 — Análisis cualitativo | Cumplido | Estudio piloto en 7.2; tipología en tres patrones de fallo del pipeline en 7.7 (sobreingeniería, erosión semántica, convergencia del bucle SR) con ejemplos del top-20 spread |
 | OE7 — Reproducibilidad documentada | Cumplido | `pyproject.toml`, `CONTEXT.md`, Anexo A, caches en repo |
 
 Tabla 8.1. Estado de cumplimiento de los objetivos específicos al cierre
