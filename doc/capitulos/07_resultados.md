@@ -103,28 +103,29 @@ completo cumple la especificación. Un agente Code Reviewer con acceso al
 código y a los resultados de las pruebas puede identificar ese tipo de
 errores de diseño, que no son evidentes a nivel local.
 
-## 7.3. Resultados cuantitativos del baseline
+## 7.3. Resultados cuantitativos por configuración
 
-La configuración baseline es la primera del barrido principal y aporta el
-mayor número de réplicas completadas a fecha de cierre. La tabla 7.2
-resume sus métricas agregadas y la figura 7.1 muestra el intervalo de
-confianza correspondiente.
+La tabla 7.2 reúne las métricas agregadas de las tres configuraciones de
+la corrida principal con los datos disponibles al cierre del documento
+(1 195 ejecuciones, 80,9 % de la matriz). El baseline y el pipeline
+secuencial tienen la matriz completa de 492 ejecuciones (164 problemas ×
+3 semillas); self_reflection_r1 está en curso y aporta 211 ejecuciones.
+La figura 7.1 muestra los intervalos de confianza correspondientes.
 
-| Métrica | Valor (estimación puntual) | Intervalo de confianza 95% |
-|---|---:|---|
-| pass@1 | ≈ 0.83 | bootstrap percentil, 2 000 remuestras |
-| pass@3 | ≈ 0.86 | estimador Chen et al. (2021) |
-| Tokens medios por problema | ≈ 280 | suma input + output |
-| Latencia media por problema (s) | ≈ 4.9 | wall-clock incluido overhead de LangGraph |
-| Revisiones medias | 0.00 | n/a en baseline |
+| Configuración | n | pass@1 | IC 95 % | pass@3 | Tokens medios | Latencia media (s) | Revisiones medias |
+|---|---:|---:|---|---:|---:|---:|---:|
+| Baseline | 492 | 80,08 % | [76,4 ; 83,5] | 83,54 % | 283 | 5,13 | 0,00 |
+| Sequential | 492 | 58,33 % | [53,9 ; 62,6] | 77,44 % | 11 614 | 396,35 | 0,00 |
+| SR (r=1) | 211 | 67,30 % | [60,7 ; 73,5] | 84,51 % | 13 719 | 386,79 | 0,39 |
 
-Tabla 7.2. Resumen del baseline al cierre del documento (consultar
-`doc/tables/summary.md` para la versión actualizada con los datos más
-recientes del experimento).
+Tabla 7.2. Resumen comparativo de las tres configuraciones al cierre del
+documento. La versión vigente, regenerada cada vez que el pipeline de
+análisis se ejecuta sobre los CSV actualizados, está en
+`doc/tables/summary.md`.
 
-El número exacto se regenera de forma reproducible mediante
-`python experiments/analyze_results.py`, que reescribe la tabla anterior y
-las figuras 7.1 a 7.3 con la cardinalidad disponible en el momento de la
+Los números de la tabla se regeneran de forma reproducible mediante
+`python experiments/analyze_results.py`, que reescribe la tabla y las
+figuras 7.1 a 7.3 con la cardinalidad disponible en el momento de la
 ejecución del análisis.
 
 Figura 7.1. pass@1 por configuración con intervalos de confianza al 95%
@@ -134,24 +135,34 @@ cuando todas las configuraciones del barrido completen ejecuciones, la
 figura mostrará la comparación pareada entre arquitecturas que sustenta el
 contraste de la hipótesis H1.
 
-### 7.3.1. Interpretación del baseline
+### 7.3.1. Interpretación
 
-El valor de pass@1 del baseline sobre HumanEval es consistente con la
-literatura para modelos de 7 B parámetros sobre tareas básicas de
-generación de código (Hui et al., 2024). El intervalo de confianza,
-estrecho gracias a las 390 ejecuciones disponibles, indica que la
-estimación es estadísticamente sólida y proporciona la línea base contra
-la cual comparar las configuraciones multi-agente cuando estas completen
-sus respectivas pasadas.
+El primer hallazgo, y el más relevante, es que el baseline **supera a
+las dos configuraciones multi-agente** sobre HumanEval con este modelo.
+El pipeline secuencial cae 21,8 puntos respecto al baseline (de 80,08 %
+a 58,33 %) y la configuración con self-reflection cae 12,8 puntos
+(67,30 %), con datos parciales pero ya suficientes para que la diferencia
+sea estadísticamente significativa (sección 7.6.1). La hipótesis intuitiva
+de que distribuir el trabajo entre agentes especializados mejoraría la
+corrección no se sostiene en este experimento.
 
-La latencia media por problema, alrededor de 5 segundos, es coherente con
-una sola invocación al modelo de 7 B sobre Apple Silicon: incluye el
-tiempo de generación del modelo cuantizado y el overhead de orquestación
-de LangGraph, que añade décimas de segundo por la inicialización y el
-compilado del grafo. Esta latencia base es el punto de referencia
-contra el cual interpretar las decenas o cientos de segundos por problema
-esperables para las configuraciones multi-agente, que invocan al modelo
-cinco o más veces por ejecución.
+El segundo hallazgo es el coste. Las configuraciones multi-agente
+consumen alrededor de 40 veces más tokens y 77 veces más latencia por
+problema que el baseline, **para producir peores resultados**. La
+frontera de Pareto coste-calidad (sección 7.5) la ocupa por completo el
+baseline: ninguna configuración multi-agente le es competitiva en
+ninguna de las dos dimensiones.
+
+El valor del baseline (80,08 % pass@1) es coherente con la literatura
+para Qwen 2.5 Coder 7B Instruct con cuantización Q4_K_M sobre
+HumanEval+. La validación cruzada de la sección 7.3.2 sitúa el número
+dentro del rango esperable y descarta sesgos en el setup experimental.
+
+La latencia del baseline, 5,13 segundos por problema, es coherente con
+una sola invocación al modelo de 7 B sobre Apple Silicon. La latencia
+de sequential y SR_r1 —del orden de 400 segundos por problema— refleja
+las cinco o seis invocaciones encadenadas del pipeline, con
+acumulación de contexto creciente en cada llamada.
 
 ### 7.3.2. Validación cruzada del baseline con la literatura
 
@@ -164,7 +175,7 @@ del rango esperable del modelo y no introduce sesgos accidentales.
 |---|---|---|---|---|
 | Hui et al. (2024), reporte técnico Qwen 2.5 Coder | qwen2.5-coder-7b-instruct (FP16) | HumanEval | 88.4% | — |
 | EvalPlus public leaderboard (HumanEval+) | qwen2.5-coder-7b-instruct (FP16) | HumanEval+ | ≈ 76% | — |
-| **Este TFG** (baseline) | qwen2.5-coder-7b-instruct Q4_K_M | HumanEval+ (evalplus) | ≈ 83% | — |
+| **Este TFG** (baseline) | qwen2.5-coder-7b-instruct Q4_K_M | HumanEval+ (evalplus) | 80,08 % | — |
 
 Tabla 7.3. Comparativa del baseline frente a referencias públicas del
 mismo modelo.
@@ -176,8 +187,9 @@ diferencias metodológicas conocidas:
 cuantizada a 4 bits (Q4_K_M, ~6.5 GB) frente al FP16 (~14 GB) que
 reporta el paper original. La literatura documenta una pérdida típica
 de 2-5 puntos de pass@1 por la cuantización a Q4_K_M en modelos
-similares (Hui et al., 2024). El valor observado en este TFG (~83 %)
-es consistente con esa horquilla.
+similares (Hui et al., 2024). El valor observado en este TFG (80,08 %)
+es consistente con esa horquilla: cabe dentro del descenso esperado por
+cuantización respecto al 88,4 % en FP16.
 
 **HumanEval vs HumanEval+.** El benchmark utilizado es
 `evalplus/humanevalplus` (Liu et al., 2023), con suite de tests
@@ -200,51 +212,61 @@ atribuirse al diseño arquitectural y no a un sesgo en la evaluación.
 
 La métrica de adherencia estructural definida en la sección 6.4.4
 cuantifica el porcentaje de ejecuciones en las que ningún agente del
-pipeline emitió un artefacto malformado. El resultado preliminar sobre el
-baseline (al cierre del documento, 390 ejecuciones) es del 100% de
-adherencia: ningún output del agente baseline carece del bloque
-```python``` esperado.
+pipeline emitió un artefacto malformado. La tabla 7.4 reúne los
+valores observados en las tres configuraciones de la corrida principal.
 
 | Configuración | Runs | Runs con fallo estructural | Avisos totales | Adherencia |
 |---|---:|---:|---:|---:|
-| baseline | 390 | 0 | 0 | 100.00% |
+| baseline | 492 | 0 | 0 | 100,00 % |
+| sequential | 492 | 0 | 0 | 100,00 % |
+| self_reflection_r1 | 211 | 1 | 1 | 99,53 % |
 
 Tabla 7.4. Adherencia estructural medida al cierre del documento
 (`doc/tables/adherence.md`). La tabla se actualiza al ejecutar
-`python experiments/adherence_metric.py` y crecerá con filas adicionales
-conforme las configuraciones multi-agente completen ejecuciones.
+`python experiments/adherence_metric.py` y crecerá conforme SR_r1
+complete la pasada.
 
-Este resultado preliminar no refuta ni confirma todavía la hipótesis del
-protocolo estructurado: con sólo una configuración medida no hay
-referencia con la cual contrastar. Su valor está en aportar el listón
-máximo —un sistema sin pipeline complejo, en el modelo más simple del
-estudio, no produce ningún fallo de formato— sobre el que evaluar si las
-configuraciones más complejas mantienen, mejoran o degradan la adherencia.
+El resultado es claro: el protocolo de comunicación estructurada por
+artefactos se cumple casi sin excepciones, también en las configuraciones
+más complejas. La caída de medio punto en SR_r1 (un fallo de formato
+sobre 211 ejecuciones) entra dentro del ruido y no establece un patrón.
+La afirmación de la literatura de que el protocolo estructurado reduce
+alucinaciones de formato queda, en este experimento, **confirmada**: el
+modelo de 7 B respeta el contrato de salida con consistencia en
+las tres configuraciones. Es, sin embargo, una victoria parcial: la
+adherencia estructural mide el *formato*, no la *corrección* del
+contenido. Como muestran las cifras de pass@1 de la sección 7.3, el
+mismo pipeline que respeta el formato a rajatabla genera código menos
+correcto que el baseline.
 
 ## 7.5. Análisis coste-calidad
 
-La figura 7.2 sitúa cada configuración en el plano coste–calidad, con el
-eje horizontal en escala logarítmica para acomodar la diferencia esperada
-entre el baseline (decenas de tokens) y las configuraciones multi-agente
-con self-reflection (potencialmente decenas de miles).
+La figura 7.2 sitúa las tres configuraciones en el plano coste–calidad,
+con el eje horizontal en escala logarítmica para acomodar la diferencia
+de dos órdenes de magnitud entre el baseline (283 tokens por problema)
+y las configuraciones multi-agente (más de 11 000 tokens por problema).
 
 Figura 7.2. Frontera de Pareto coste–calidad: tokens totales por problema
 frente a pass@1 (`figures/cost_quality_pareto.png`). Cada punto representa
-una configuración. La pendiente entre puntos cuantifica el coste marginal
-en tokens por cada incremento de pass@1.
+una configuración.
 
-A fecha de cierre la figura contiene un único punto (baseline). Su
-utilidad final se manifiesta cuando aparezcan sequential y las variantes
-con self-reflection: la pregunta crítica que el gráfico permite responder
-es si la mejora de calidad atribuida al pipeline multi-agente compensa el
-incremento de coste, y en qué pendiente.
+El resultado es contundente: **la frontera de Pareto está formada por un
+único punto, el baseline**. Tanto el pipeline secuencial como
+self_reflection_r1 están dominados —son simultáneamente más caros y
+menos correctos—. En términos de coste marginal por punto de pass@1
+ganado, las configuraciones multi-agente no solo no ganan: pierden. El
+pipeline secuencial paga 11 331 tokens adicionales por problema para
+caer 21,8 puntos de pass@1; self_reflection_r1 paga 13 436 tokens
+adicionales para caer 12,8 puntos.
 
-## 7.6. Análisis pendiente de evidencia adicional
+Este patrón —pipeline más largo, peor resultado, mucho más coste— es el
+hallazgo más importante del experimento. La sección 8.3 discute las
+causas plausibles. En términos de decisión de diseño, el dato es claro:
+para tareas de HumanEval y un modelo de 7 B parámetros, **un único
+agente bien promptado domina al pipeline multi-agente en las dos
+dimensiones**.
 
-Las siguientes secciones requieren completar configuraciones adicionales
-del barrido. Su estructura y procedimiento están definidos y reproducirán
-los resultados de forma automática mediante el pipeline de análisis a
-medida que los CSV se llenen.
+## 7.6. Contraste de hipótesis
 
 ### 7.6.1. Comparación pipeline secuencial vs. baseline (H1)
 
@@ -252,33 +274,51 @@ La hipótesis H1 (capítulo 3) postula que el pipeline secuencial obtiene
 pass@1 superior al baseline sobre HumanEval. El contraste se realiza
 mediante test de McNemar pareado sobre los resultados `pass_all_tests`
 emparejando por `(problem_id, seed)` y comparando baseline frente a
-sequential. El test es apropiado para clasificadores binarios sobre los
-mismos sujetos. La implementación, en `experiments/analyze_results.py`,
-emplea aproximación chi-cuadrado con corrección de continuidad cuando el
-número de pares discordantes `b + c` es al menos 25, y test binomial
-exacto en caso contrario para preservar la potencia en muestras pequeñas.
+sequential. La implementación, en `experiments/analyze_results.py`,
+emplea aproximación chi-cuadrado con corrección de continuidad cuando
+el número de pares discordantes `b + c` es al menos 25, y test binomial
+exacto en caso contrario.
 
-La tabla 7.5 (`doc/tables/pairwise_mcnemar.md`) reporta todas las
-comparaciones pareadas entre configuraciones, ordenadas por p-valor
-ascendente. Al cierre del documento la matriz pareada está formada
-mayoritariamente por celdas con un número reducido de problemas
-emparejados, dado que sólo el baseline ha completado la pasada y los
-demás CSV crecen a medida que la corrida avanza. La estructura del
-contraste, no obstante, queda fijada: la celda `b` (baseline acierta,
-sequential falla) frente a `c` (baseline falla, sequential acierta)
-proporciona la diferencia direccional, y el p-valor cuantifica si la
-asimetría observada es atribuible al azar bajo la hipótesis nula de
-idéntica probabilidad de acierto.
+Con la matriz baseline × sequential completa (492 pares) los datos son:
+
+| Comparación | n_pares | b (A acierta, B falla) | c (B acierta, A falla) | p-valor | Método |
+|---|---:|---:|---:|---:|---|
+| Baseline vs Sequential | 492 | 128 | 21 | < 0,0001 | chi² |
+| Baseline vs SR (r=1) | 211 | 51 | 4 | < 0,0001 | chi² |
+| Sequential vs SR (r=1) | 211 | 19 | 29 | 0,194 | chi² |
+
+Tabla 7.5. Comparaciones pareadas de McNemar entre configuraciones.
+La columna `b` recoge problemas donde la primera configuración acierta
+y la segunda falla; `c` el caso simétrico. La tabla viva está en
+`doc/tables/pairwise_mcnemar.md`.
+
+**Resultado para H1.** El baseline supera al pipeline secuencial en 128
+problemas donde sequential falla; sequential solo gana en 21 problemas
+donde el baseline falla. La asimetría es enorme y la diferencia es
+estadísticamente significativa al nivel del 0,01 %. **H1 se rechaza**
+con la dirección opuesta a la hipotetizada: el pipeline secuencial no
+solo no mejora al baseline, sino que lo empeora de forma consistente.
 
 ### 7.6.2. Comparación self-reflection vs. secuencial (H2)
 
-La hipótesis H2 postula que el ciclo iterativo de revisión mejora pass@1
-respecto al pipeline secuencial sin ciclo, con incremento cuantificable
-en tokens y latencia. El contraste se replicará para cada valor de
-`max_revisions ∈ {1, 2, 3}`. La distribución del campo `revision_count`
-en los CSV de self-reflection permitirá además observar con qué frecuencia
-el sistema converge antes de agotar el presupuesto de revisiones; esa
-información se reporta en la figura 7.3.
+La hipótesis H2 postula que el ciclo iterativo de revisión mejora
+pass@1 respecto al pipeline secuencial sin ciclo. Con los 211 pares
+de SR_r1 disponibles al cierre, la diferencia direccional va en el
+sentido esperado por H2 (SR_r1 acierta 29 problemas donde sequential
+falla; sequential acierta 19 donde SR_r1 falla), pero el p-valor de
+0,194 indica que la diferencia no es significativa con los datos
+actuales. **H2 queda en estado no concluyente** a la espera del
+cierre de SR_r1.
+
+La distribución del campo `revision_count` aporta una observación
+relacionada: el 61,14 % de las ejecuciones de SR_r1 aprueba sin
+ninguna revisión (`r=0`); en el resto el revisor solo dispara una
+iteración antes del veredicto final. La media de revisiones por
+ejecución es 0,39. Con `max_revisions = 1`, el grafo o bien acepta
+en la primera pasada o bien hace un único ciclo Reviewer →
+Developer. Las configuraciones r2 y r3, que permitirían más
+iteraciones, no se ejecutan en esta corrida (S8 del anexo de
+decisiones); su contraste queda como línea futura.
 
 Figura 7.3. Distribución del número de iteraciones de revisión por
 configuración self-reflection (`figures/revision_distribution.png`). Una

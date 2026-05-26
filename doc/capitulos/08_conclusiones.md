@@ -28,8 +28,8 @@ cuándo se vuelva a tirar el análisis.
 | OE2 — Arquitectura multi-agente | Cumplido | Capítulo 5, `src/graph/sequential_graph.py` |
 | OE3 — Baseline LLM monolítico | Cumplido | Sección 5.4.1, `src/graph/baseline_graph.py` |
 | OE4 — Mecanismo de auto-revisión | Cumplido | Sección 5.4.3, `src/graph/self_reflection_graph.py` |
-| OE5 — Evaluación empírica | En ejecución | Banco listo, baseline completado, secuencial y SR en cola |
-| OE6 — Análisis cualitativo | Parcial | Estudio piloto en 7.2; análisis comparativo pendiente de datos adicionales |
+| OE5 — Evaluación empírica | Cumplido en lo esencial, en cierre para SR_r1 | Baseline y sequential completos (492 runs cada uno); SR_r1 al 43 % (211/492) y avanzando |
+| OE6 — Análisis cualitativo | Parcial | Estudio piloto en 7.2; análisis por dificultad del problema (H3) pendiente del cierre de SR_r1 |
 | OE7 — Reproducibilidad documentada | Cumplido | `pyproject.toml`, `CONTEXT.md`, Anexo A, caches en repo |
 
 Tabla 8.1. Estado de cumplimiento de los objetivos específicos al cierre
@@ -48,30 +48,101 @@ está cumplida en la sección 7.2.
 
 ## 8.3. Conclusiones por hipótesis
 
-Las tres hipótesis del capítulo 3 se contrastarán con el cierre del
-barrido experimental. El estado actual permite ya formular dos
-observaciones preliminares:
+El análisis del capítulo 7 sobre el 80,9 % de la matriz principal
+(1 195 de 1 476 ejecuciones) permite ya emitir conclusiones firmes para
+dos de las tres hipótesis y dejar la tercera en estado no concluyente
+a la espera del cierre.
 
-**Sobre H1 (especialización).** El baseline alcanza pass@1 cercano al 83%
-sobre HumanEval con 280 tokens medios por problema. Cualquier mejora del
-pipeline secuencial deberá superar ese listón con un margen
-estadísticamente distinguible. La amplitud del intervalo de confianza
-bootstrap del baseline, calculado sobre las 492 ejecuciones que completan
-la matriz baseline × HumanEval × 3 semillas, indica que el
-test de McNemar dispondrá de potencia suficiente para detectar
-diferencias del orden del 5–10% en pass@1 entre configuraciones cuando
-todas las configuraciones acumulen un volumen similar de ejecuciones.
+**Sobre H1 (especialización).** **Rechazada con dirección invertida.**
+El pipeline secuencial obtiene 58,33 % de pass@1 frente al 80,08 % del
+baseline (diferencia de 21,8 puntos, McNemar p < 0,0001 sobre 492 pares
+con b = 128 y c = 21). La especialización por roles no mejora la
+corrección sobre HumanEval con este modelo: la empeora. La hipótesis
+de partida —que distribuir el trabajo entre cinco agentes especializados
+produciría soluciones más correctas que un único agente bien
+promptado— no se sostiene en este experimento.
 
-**Sobre la adherencia al protocolo estructurado.** El baseline registra
-adherencia estructural del 100% sobre las ejecuciones completadas. Este
-resultado, antes de comparar con configuraciones más complejas, no
-permite concluir nada sobre la afirmación de que el protocolo
-estructurado reduce alucinaciones; sí establece el listón superior con
-el que el resto de configuraciones se contrastarán. El modelo Qwen 2.5
-Coder de 7 B parece suficientemente competente con instrucciones de
-formato simples como para emitir bloques ```python``` consistentes; el
-test interesante será observar si esa adherencia se mantiene en los
-pipelines más complejos.
+**Sobre H2 (auto-revisión).** **No concluyente con tendencia en el
+sentido esperado.** La configuración con self-reflection
+(`max_revisions = 1`) alcanza 67,30 % de pass@1, casi 9 puntos por
+encima del pipeline secuencial sin ciclo, pero la diferencia no es
+significativa con los 211 pares disponibles al cierre (p = 0,194). Si
+la tendencia se mantiene cuando SR_r1 complete la pasada, la hipótesis
+quedará respaldada para `r = 1`. Para `r > 1` el contraste no se puede
+hacer con los datos actuales: SR_r2 y SR_r3 quedaron fuera del scope
+por restricciones de cómputo.
+
+**Sobre H3 (trade-off coste-calidad).** **Rechazada con dirección
+invertida.** La hipótesis postulaba un trade-off cuantificable según
+la dificultad del problema, con el beneficio del pipeline complejo
+disminuyendo en problemas simples. Los datos contradicen el supuesto
+sobre el que se construyó la hipótesis: el pipeline complejo no aporta
+beneficio en ningún rango. El multi-agente paga 40 veces más tokens y
+77 veces más latencia que el baseline para obtener peor pass@1, y la
+frontera de Pareto coste-calidad la ocupa por completo el baseline. No
+hay trade-off que analizar; hay una dominancia clara de la
+configuración monolítica.
+
+**Sobre la adherencia al protocolo estructurado.** El protocolo de
+comunicación por artefactos se cumple sin excepciones en baseline y
+secuencial (100 %) y con una sola desviación en SR_r1 (99,53 %). La
+afirmación de la literatura de que el protocolo estructurado reduce
+las alucinaciones de formato se confirma. Pero la observación
+relevante es que la adherencia estructural mide el formato, no la
+corrección: el mismo pipeline que respeta el contrato de salida sin
+fallos genera código menos correcto que un agente único sin protocolo.
+
+### 8.3.1. Discusión: por qué el pipeline empeora al baseline
+
+El resultado contradice la lectura habitual de la literatura
+multi-agente, que reporta mejoras consistentes del pipeline frente al
+monolítico (ChatDev, Qian et al., 2024; MetaGPT, Hong et al., 2024).
+Hay tres explicaciones plausibles, no excluyentes, que el experimento
+sugiere y que merecen investigación futura.
+
+**Propagación de errores a lo largo del pipeline.** Cada agente del
+pipeline recibe como entrada la salida del agente anterior. Un error
+de interpretación del Product Manager al traducir el enunciado a PRD
+se arrastra al Arquitecto, que lo reinterpreta, y de ahí al Developer,
+que implementa contra un diseño ya desviado. En el baseline esa
+cadena no existe: el modelo lee el enunciado original y genera código
+directamente. El estudio piloto de la sección 7.2 anticipó este
+patrón, pero su magnitud cuantitativa solo se hace visible con la
+matriz completa.
+
+**Inadecuación del modelo de 7 B parámetros para prompts largos.**
+Cada agente del pipeline opera con un prompt de sistema extenso —rol,
+formato de salida, restricciones, ejemplos— que ocupa una parte
+considerable de la ventana de contexto. Para HumanEval, donde el
+enunciado del problema es pequeño y la solución es una función
+aislada, esa estructura puede ser contraproducente: el modelo dedica
+capacidad cognitiva a respetar el protocolo de rol en vez de a
+resolver el problema. Los trabajos que reportan mejoras del
+multi-agente —ChatDev, MetaGPT— evalúan con modelos frontera (GPT-4)
+sobre tareas mucho mayores que una función aislada. La ventaja del
+pipeline puede depender críticamente de que (a) el modelo tenga
+capacidad sobrante para gestionar la sobrecarga del protocolo y (b)
+la tarea sea suficientemente grande como para que la especialización
+compense la fricción.
+
+**HumanEval como benchmark inadecuado para evaluar pipelines
+multi-agente.** HumanEval pide implementar una función aislada con un
+docstring corto. Es plausible que el pipeline secuencial PM →
+Arquitecto → Developer → QA → Reviewer aporte valor en tareas con
+componentes interdependientes (varios módulos, decisiones de
+arquitectura no triviales, requisitos ambiguos), pero no en
+implementaciones de una función con especificación cerrada. El
+experimento, por tanto, no refuta el sistema multi-agente en
+general: refuta su utilidad en el segmento específico de problemas
+que HumanEval representa.
+
+Las tres explicaciones convergen en una recomendación de diseño
+honesta: **no introducir multi-agente cuando la tarea cabe en un
+prompt y el modelo es pequeño**. El coste adicional es real, los
+beneficios no aparecen, y la complejidad arquitectural no se justifica
+empíricamente en ese régimen. Cuándo y con qué modelo el pipeline
+empieza a ser competitivo es una pregunta abierta y razonable como
+extensión natural del trabajo.
 
 ## 8.4. Contribuciones del trabajo
 
@@ -182,26 +253,30 @@ para gestionar múltiples artefactos correlacionados.
 
 La pregunta de la propuesta era si la especialización por roles aporta
 una ventaja medible frente a un LLM monolítico, y bajo qué condiciones.
-El sistema y el banco experimental ahora permiten formularla como un
-experimento controlado: los números finales dependen de cuándo se
-consolide la matriz, pero el aparato para responderla está montado.
+La respuesta del experimento es honesta y útil aunque no sea la que
+intuitivamente cabría esperar: con un modelo de 7 B y problemas que
+caben en un único prompt, **el monolítico domina**. La especialización
+por roles no se traduce en mejor pass@1 sobre HumanEval, y el coste
+adicional del pipeline es de dos órdenes de magnitud.
 
-Hay algo que el experimento no termina de capturar y que vale la pena
-nombrar. Trabajar con cinco agentes hablando entre sí a través de un
-estado tipado se siente, en la práctica, más cercano a coordinar un
+Hay algo que el número de pass@1 no captura y que vale la pena nombrar
+por separado. Trabajar con cinco agentes hablando entre sí a través de
+un estado tipado se siente, en la práctica, más cercano a coordinar un
 equipo humano que a invocar un modelo. Cuando una solución falla, se
 puede mirar qué dijo el Product Manager, qué interpretó el Arquitecto,
 qué implementó el Developer y qué señaló el Reviewer; cada paso queda
-explícito y auditable. Esa propiedad —la trazabilidad de la decisión—
-me parece más interesante a largo plazo que cualquier puntito de
-pass@1 que aporte el sistema. Si los pipelines multi-agente terminan
-imponiéndose, no creo que sea sólo por su precisión: creo que será
-también porque permiten razonar sobre por qué el sistema hizo lo que
-hizo, algo que un LLM monolítico de prompt largo simplemente no
-ofrece.
+explícito y auditable. Esa trazabilidad de la decisión es lo único que
+el pipeline multi-agente sí ofrece y el baseline monolítico no, y
+puede acabar siendo el motivo por el que estas arquitecturas se imponen
+en producción aunque pierdan en benchmarks de funciones aisladas. Pero
+es una propiedad cualitativa y este TFG no la ha medido.
 
-Independientemente del veredicto cuantitativo final, el trabajo deja
-tres piezas que sobreviven al ciclo del TFG: el código del sistema
-multi-agente, el banco experimental resumible y el pipeline de
-análisis automático. Las líneas futuras de la sección 8.6 pueden
-empezar desde ahí sin reconstruir la infraestructura.
+Tres piezas sobreviven al ciclo del trabajo independientemente del
+veredicto cuantitativo: el código del sistema multi-agente, el banco
+experimental resumible y el pipeline de análisis automático que
+regenera todo desde los CSV. Las líneas futuras de la sección 8.6
+—escalado del modelo, integración de SWE-bench Lite, comparativa
+heterogénea de backends por rol— pueden empezar desde esa
+infraestructura sin reconstruirla, y son las extensiones donde el
+multi-agente tiene más probabilidades de demostrar el valor que aquí
+no ha podido demostrar.
