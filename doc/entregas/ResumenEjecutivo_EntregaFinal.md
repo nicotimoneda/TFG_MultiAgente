@@ -21,15 +21,15 @@ Tres réplicas por par (configuración, problema). Métricas: pass@1 con IC 95 %
 
 ## Resultados principales
 
-*Datos al cierre del documento, 1 195 / 1 476 ejecuciones (80,9 % de la matriz).*
+*Matriz completa: 1 476 / 1 476 ejecuciones (100 %), sin fallos.*
 
 | Configuración | n | pass@1 | IC 95 % | Tokens | Latencia (s) |
 |---|---:|---:|---|---:|---:|
-| Baseline | 492 | **80,08 %** | [76,4 ; 83,5] | 283 | 5,1 |
-| Sequential | 492 | 58,33 % | [53,9 ; 62,6] | 11 614 | 396,4 |
-| SR (r=1) | 211 | 67,30 % | [60,7 ; 73,5] | 13 719 | 386,8 |
+| Baseline | 492 | **80,08 %** | [76,42 ; 83,54] | 283 | 5,1 |
+| Sequential | 492 | 58,33 % | [53,86 ; 62,60] | 11 614 | 396,4 |
+| SR (r=1) | 492 | 64,84 % | [60,57 ; 69,31] | 14 135 | 411,6 |
 
-**El experimento no respalda la hipótesis intuitiva** de que la especialización por roles mejora la corrección. El pipeline secuencial cae 21,8 puntos respecto al baseline (McNemar p < 0,0001, b = 128, c = 21) y SR_r1 cae 12,8 puntos. Las configuraciones multi-agente cuestan aproximadamente 40 veces más tokens y 77 veces más latencia para producir peor pass@1, y la frontera de Pareto coste-calidad la ocupa por completo el baseline. La adherencia estructural se mantiene cercana al 100 % en las tres configuraciones (100 / 100 / 99,53 %), lo que confirma la robustez del protocolo de formato pero no rescata la calidad del contenido generado.
+**El experimento no respalda la hipótesis intuitiva** de que la especialización por roles mejora la corrección. El pipeline secuencial cae 21,8 puntos respecto al baseline (McNemar p < 0,0001, b = 128, c = 21) y SR_r1 cae 15,2 puntos (p < 0,0001, b = 101, c = 26). H2 sí queda respaldada para `r = 1`: SR_r1 mejora 6,51 puntos sobre el secuencial (McNemar p = 0,0066, b = 49, c = 81). Las configuraciones multi-agente cuestan aproximadamente 41 veces más tokens y 77-80 veces más latencia para producir peor pass@1 que el baseline, y la frontera de Pareto coste-calidad la ocupa por completo el baseline. La adherencia estructural se mantiene cercana al 100 % en las tres configuraciones (100 / 100 / 99,80 %), lo que confirma la robustez del protocolo de formato pero no rescata la calidad del contenido generado.
 
 ## Discusión
 

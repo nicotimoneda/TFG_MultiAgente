@@ -13,12 +13,10 @@ han añadido tres ablaciones de rol que no estaban en la propuesta
 original pero que resultaron útiles para responder con más finura la
 pregunta de qué contribuye cada agente.
 
-La corrida experimental seguía en marcha al cerrar la memoria, así
-que algunos números del capítulo 7 son parciales por construcción.
-El pipeline de análisis está pensado precisamente para eso: cada vez
-que se ejecuta sobre los CSV actualizados, regenera figuras, tablas
-y test pareados. La interpretación final por hipótesis depende de
-cuándo se vuelva a tirar el análisis.
+La corrida experimental cerró con la matriz completa (1 476
+ejecuciones, sin fallos) antes de la entrega. Todos los números del
+capítulo 7 son finales y reproducibles re-ejecutando el pipeline de
+análisis sobre los CSV del repositorio.
 
 ## 8.2. Cumplimiento de los objetivos específicos
 
@@ -28,30 +26,25 @@ cuándo se vuelva a tirar el análisis.
 | OE2 — Arquitectura multi-agente | Cumplido | Capítulo 5, `src/graph/sequential_graph.py` |
 | OE3 — Baseline LLM monolítico | Cumplido | Sección 5.4.1, `src/graph/baseline_graph.py` |
 | OE4 — Mecanismo de auto-revisión | Cumplido | Sección 5.4.3, `src/graph/self_reflection_graph.py` |
-| OE5 — Evaluación empírica | Cumplido en lo esencial, en cierre para SR_r1 | Baseline y sequential completos (492 runs cada uno); SR_r1 al 43 % (211/492) y avanzando |
+| OE5 — Evaluación empírica | Cumplido | Las tres configuraciones completas (492 runs cada una; 1 476 en total) |
 | OE6 — Análisis cualitativo | Cumplido | Estudio piloto en 7.2; tipología en tres patrones de fallo del pipeline en 7.7 (sobreingeniería, erosión semántica, convergencia del bucle SR) con ejemplos del top-20 spread |
 | OE7 — Reproducibilidad documentada | Cumplido | `pyproject.toml`, `CONTEXT.md`, Anexo A, caches en repo |
 
 Tabla 8.1. Estado de cumplimiento de los objetivos específicos al cierre
 del documento.
 
-Dos objetivos quedan en estado distinto a "cumplido". El OE5 está
-ejecutándose en el momento de cerrar el documento: la infraestructura del
-banco es completa y resumible, y la cardinalidad del experimento avanza
-hacia las 1 476 ejecuciones de la matriz principal (3 configuraciones ×
-164 problemas × 3 semillas). El OE6 depende del
-OE5: el análisis cualitativo comparativo entre configuraciones —dónde gana
-el pipeline complejo y dónde no— sólo se puede ejecutar sobre los CSV de
-todas las configuraciones. La parte cualitativa del OE6 que es
-independiente del experimento, el estudio piloto que motivó el diseño,
-está cumplida en la sección 7.2.
+Los siete objetivos quedan cubiertos. OE5 alcanzó la cardinalidad
+prevista de 1 476 ejecuciones (3 configuraciones × 164 problemas × 3
+semillas) sin fallos. OE6 se apoya tanto en el estudio piloto que
+motivó el diseño (sección 7.2) como en el análisis cualitativo
+comparativo entre configuraciones de la sección 7.7, que sólo era
+posible con los CSV de las tres configuraciones cerradas.
 
 ## 8.3. Conclusiones por hipótesis
 
-El análisis del capítulo 7 sobre el 80,9 % de la matriz principal
-(1 195 de 1 476 ejecuciones) permite ya emitir conclusiones firmes para
-dos de las tres hipótesis y dejar la tercera en estado no concluyente
-a la espera del cierre.
+El análisis del capítulo 7 sobre el 100 % de la matriz principal
+(1 476 ejecuciones) permite emitir conclusiones firmes para las tres
+hipótesis.
 
 **Sobre H1 (especialización).** **Rechazada con dirección invertida.**
 El pipeline secuencial obtiene 58,33 % de pass@1 frente al 80,08 % del
@@ -62,15 +55,19 @@ de partida —que distribuir el trabajo entre cinco agentes especializados
 produciría soluciones más correctas que un único agente bien
 promptado— no se sostiene en este experimento.
 
-**Sobre H2 (auto-revisión).** **No concluyente con tendencia en el
-sentido esperado.** La configuración con self-reflection
-(`max_revisions = 1`) alcanza 67,30 % de pass@1, casi 9 puntos por
-encima del pipeline secuencial sin ciclo, pero la diferencia no es
-significativa con los 211 pares disponibles al cierre (p = 0,194). Si
-la tendencia se mantiene cuando SR_r1 complete la pasada, la hipótesis
-quedará respaldada para `r = 1`. Para `r > 1` el contraste no se puede
-hacer con los datos actuales: SR_r2 y SR_r3 quedaron fuera del scope
-por restricciones de cómputo.
+**Sobre H2 (auto-revisión).** **Respaldada para `r = 1`.** La
+configuración con self-reflection alcanza 64,84 % de pass@1, 6,51
+puntos por encima del pipeline secuencial sin ciclo (58,33 %), sobre
+los 492 pares de la matriz cerrada. El test de McNemar pareado
+devuelve b = 49, c = 81, p = 0,0066: SR_r1 acierta 81 problemas donde
+sequential falla y sequential solo acierta 49 donde SR_r1 falla. El
+ciclo Reviewer → Developer con una única iteración mejora la
+corrección sobre el pipeline sin ciclo de forma estadísticamente
+significativa. La mejora, no obstante, no compensa la distancia frente
+al baseline: SR_r1 sigue 15,2 puntos por debajo del monolítico. Para
+`r > 1` el contraste no se puede hacer con los datos disponibles:
+SR_r2 y SR_r3 quedaron fuera del scope por restricciones de cómputo
+(S8 del anexo de decisiones).
 
 **Sobre H3 (trade-off coste-calidad).** **Rechazada con dirección
 invertida.** La hipótesis postulaba un trade-off cuantificable según
@@ -85,7 +82,8 @@ configuración monolítica.
 
 **Sobre la adherencia al protocolo estructurado.** El protocolo de
 comunicación por artefactos se cumple sin excepciones en baseline y
-secuencial (100 %) y con una sola desviación en SR_r1 (99,53 %). La
+secuencial (100 %) y con una sola desviación en SR_r1 (99,80 % sobre
+492 ejecuciones). La
 afirmación de la literatura de que el protocolo estructurado reduce
 las alucinaciones de formato se confirma. Pero la observación
 relevante es que la adherencia estructural mide el formato, no la

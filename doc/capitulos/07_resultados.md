@@ -2,28 +2,13 @@
 
 ## 7.1. Estado de la corrida y alcance de los resultados
 
-La corrida principal del experimento está en ejecución en el momento de
-cerrar este documento. El estado de progreso, consultable en cualquier
-momento mediante el fichero `experiments/results/progress.json`, refleja
-las ejecuciones completadas y la posición actual del barrido. Todos los
-números que se reportan a continuación se obtienen del pipeline de
-análisis (`experiments/analyze_results.py`) sobre los CSV disponibles a
-fecha de cierre, y se regeneran automáticamente con cada re-ejecución del
-analizador a medida que el experimento avanza.
-
-La política es reportar lo que ya está medido, con sus intervalos de
-confianza, en vez de esperar a que la matriz se cierre por completo. Es
-la única forma de que el capítulo contenga evidencia cuantitativa real;
-la alternativa sería rellenar las tablas con números ilustrativos, y eso
-choca de frente con el principio metodológico del capítulo 4.
-
-Los resultados que requieren múltiples configuraciones para tener sentido
-—comparación entre arquitecturas, contraste de hipótesis pareadas, análisis
-de problemas con desacuerdo entre configs— se reportan cuando los CSV de
-las configuraciones implicadas existen. Para las secciones donde la
-configuración necesaria aún no ha completado ninguna ejecución se incluye
-el procedimiento y la tabla esperada, con los huecos numéricos marcados
-explícitamente como pendientes.
+La corrida principal del experimento ha cerrado al completar las
+**1 476 ejecuciones** de la matriz (3 configuraciones × 164 problemas
+× 3 semillas), sin fallos. Todos los números que se reportan a
+continuación se obtienen del pipeline de análisis
+(`experiments/analyze_results.py`) sobre los CSV finales, y son
+reproducibles re-ejecutando dicho pipeline sobre el repositorio
+publicado.
 
 ## 7.2. Estudio piloto exploratorio
 
@@ -106,45 +91,39 @@ errores de diseño, que no son evidentes a nivel local.
 ## 7.3. Resultados cuantitativos por configuración
 
 La tabla 7.2 reúne las métricas agregadas de las tres configuraciones de
-la corrida principal con los datos disponibles al cierre del documento
-(1 195 ejecuciones, 80,9 % de la matriz). El baseline y el pipeline
-secuencial tienen la matriz completa de 492 ejecuciones (164 problemas ×
-3 semillas); self_reflection_r1 está en curso y aporta 211 ejecuciones.
+la corrida principal con la matriz cerrada (1 476 ejecuciones, 100 % de
+la matriz; 492 ejecuciones por configuración: 164 problemas × 3 semillas).
 La figura 7.1 muestra los intervalos de confianza correspondientes.
 
 | Configuración | n | pass@1 | IC 95 % | pass@3 | Tokens medios | Latencia media (s) | Revisiones medias |
 |---|---:|---:|---|---:|---:|---:|---:|
-| Baseline | 492 | 80,08 % | [76,4 ; 83,5] | 83,54 % | 283 | 5,13 | 0,00 |
-| Sequential | 492 | 58,33 % | [53,9 ; 62,6] | 77,44 % | 11 614 | 396,35 | 0,00 |
-| SR (r=1) | 211 | 67,30 % | [60,7 ; 73,5] | 84,51 % | 13 719 | 386,79 | 0,39 |
+| Baseline | 492 | 80,08 % | [76,42 ; 83,54] | 83,54 % | 283 | 5,13 | 0,00 |
+| Sequential | 492 | 58,33 % | [53,86 ; 62,60] | 77,44 % | 11 614 | 396,35 | 0,00 |
+| SR (r=1) | 492 | 64,84 % | [60,57 ; 69,31] | 81,71 % | 14 135 | 411,59 | 0,41 |
 
-Tabla 7.2. Resumen comparativo de las tres configuraciones al cierre del
-documento. La versión vigente, regenerada cada vez que el pipeline de
-análisis se ejecuta sobre los CSV actualizados, está en
-`doc/tables/summary.md`.
+Tabla 7.2. Resumen comparativo de las tres configuraciones al cierre de
+la corrida. La versión canónica, regenerada por el pipeline de análisis,
+está en `doc/tables/summary.md`.
 
 Los números de la tabla se regeneran de forma reproducible mediante
 `python experiments/analyze_results.py`, que reescribe la tabla y las
-figuras 7.1 a 7.3 con la cardinalidad disponible en el momento de la
-ejecución del análisis.
+figuras 7.1 a 7.3 a partir de los CSV finales.
 
 ![pass@1 por configuración con IC 95 %](figures/pass_at_1.png)
 
-Figura 7.1. pass@1 por configuración con intervalos de confianza al 95%
-mediante bootstrap percentil (`figures/pass_at_1.png`). El gráfico se
-regenera automáticamente con datos adicionales conforme avanza la corrida;
-cuando todas las configuraciones del barrido completen ejecuciones, la
-figura mostrará la comparación pareada entre arquitecturas que sustenta el
-contraste de la hipótesis H1.
+Figura 7.1. pass@1 por configuración con intervalos de confianza al 95 %
+mediante bootstrap percentil (`figures/pass_at_1.png`). La figura sustenta
+visualmente el contraste de la hipótesis H1: la barra del baseline supera
+a las dos configuraciones multi-agente sin solapamiento de intervalos.
 
 ### 7.3.1. Interpretación
 
 El primer hallazgo, y el más relevante, es que el baseline **supera a
 las dos configuraciones multi-agente** sobre HumanEval con este modelo.
 El pipeline secuencial cae 21,8 puntos respecto al baseline (de 80,08 %
-a 58,33 %) y la configuración con self-reflection cae 12,8 puntos
-(67,30 %), con datos parciales pero ya suficientes para que la diferencia
-sea estadísticamente significativa (sección 7.6.1). La hipótesis intuitiva
+a 58,33 %) y la configuración con self-reflection cae 15,2 puntos
+(64,84 %), con la matriz cerrada y diferencia estadísticamente
+significativa en ambos casos (sección 7.6.1). La hipótesis intuitiva
 de que distribuir el trabajo entre agentes especializados mejoraría la
 corrección no se sostiene en este experimento.
 
@@ -162,7 +141,8 @@ dentro del rango esperable y descarta sesgos en el setup experimental.
 
 La latencia del baseline, 5,13 segundos por problema, es coherente con
 una sola invocación al modelo de 7 B sobre Apple Silicon. La latencia
-de sequential y SR_r1 —del orden de 400 segundos por problema— refleja
+de sequential (396,35 s) y SR_r1 (411,59 s) —en torno a 400 segundos por
+problema— refleja
 las cinco o seis invocaciones encadenadas del pipeline, con
 acumulación de contexto creciente en cada llamada.
 
@@ -221,17 +201,17 @@ valores observados en las tres configuraciones de la corrida principal.
 |---|---:|---:|---:|---:|
 | baseline | 492 | 0 | 0 | 100,00 % |
 | sequential | 492 | 0 | 0 | 100,00 % |
-| self_reflection_r1 | 211 | 1 | 1 | 99,53 % |
+| self_reflection_r1 | 492 | 1 | 1 | 99,80 % |
 
-Tabla 7.4. Adherencia estructural medida al cierre del documento
-(`doc/tables/adherence.md`). La tabla se actualiza al ejecutar
-`python experiments/adherence_metric.py` y crecerá conforme SR_r1
-complete la pasada.
+Tabla 7.4. Adherencia estructural al cierre de la corrida
+(`doc/tables/adherence.md`). La tabla se regenera ejecutando
+`python experiments/adherence_metric.py`.
 
 El resultado es claro: el protocolo de comunicación estructurada por
 artefactos se cumple casi sin excepciones, también en las configuraciones
-más complejas. La caída de medio punto en SR_r1 (un fallo de formato
-sobre 211 ejecuciones) entra dentro del ruido y no establece un patrón.
+más complejas. La única desviación es un fallo de formato sobre 492
+ejecuciones de SR_r1 —menos de medio punto— que entra dentro del ruido y
+no establece un patrón.
 La afirmación de la literatura de que el protocolo estructurado reduce
 alucinaciones de formato queda, en este experimento, **confirmada**: el
 modelo de 7 B respeta el contrato de salida con consistencia en
@@ -260,8 +240,8 @@ self_reflection_r1 están dominados —son simultáneamente más caros y
 menos correctos—. En términos de coste marginal por punto de pass@1
 ganado, las configuraciones multi-agente no solo no ganan: pierden. El
 pipeline secuencial paga 11 331 tokens adicionales por problema para
-caer 21,8 puntos de pass@1; self_reflection_r1 paga 13 436 tokens
-adicionales para caer 12,8 puntos.
+caer 21,8 puntos de pass@1; self_reflection_r1 paga 13 852 tokens
+adicionales para caer 15,2 puntos.
 
 Este patrón —pipeline más largo, peor resultado, mucho más coste— es el
 hallazgo más importante del experimento. La sección 8.3 discute las
@@ -283,13 +263,13 @@ emplea aproximación chi-cuadrado con corrección de continuidad cuando
 el número de pares discordantes `b + c` es al menos 25, y test binomial
 exacto en caso contrario.
 
-Con la matriz baseline × sequential completa (492 pares) los datos son:
+Con la matriz cerrada (492 pares en cada comparación) los datos son:
 
 | Comparación | n_pares | b (A acierta, B falla) | c (B acierta, A falla) | p-valor | Método |
 |---|---:|---:|---:|---:|---|
 | Baseline vs Sequential | 492 | 128 | 21 | < 0,0001 | chi² |
-| Baseline vs SR (r=1) | 211 | 51 | 4 | < 0,0001 | chi² |
-| Sequential vs SR (r=1) | 211 | 19 | 29 | 0,194 | chi² |
+| Baseline vs SR (r=1) | 492 | 101 | 26 | < 0,0001 | chi² |
+| Sequential vs SR (r=1) | 492 | 49 | 81 | 0,0066 | chi² |
 
 Tabla 7.5. Comparaciones pareadas de McNemar entre configuraciones.
 La columna `b` recoge problemas donde la primera configuración acierta
@@ -306,19 +286,23 @@ solo no mejora al baseline, sino que lo empeora de forma consistente.
 ### 7.6.2. Comparación self-reflection vs. secuencial (H2)
 
 La hipótesis H2 postula que el ciclo iterativo de revisión mejora
-pass@1 respecto al pipeline secuencial sin ciclo. Con los 211 pares
-de SR_r1 disponibles al cierre, la diferencia direccional va en el
-sentido esperado por H2 (SR_r1 acierta 29 problemas donde sequential
-falla; sequential acierta 19 donde SR_r1 falla), pero el p-valor de
-0,194 indica que la diferencia no es significativa con los datos
-actuales. **H2 queda en estado no concluyente** a la espera del
-cierre de SR_r1.
+pass@1 respecto al pipeline secuencial sin ciclo. Con la matriz
+cerrada (492 pares), SR_r1 alcanza 64,84 % de pass@1 frente al
+58,33 % del pipeline secuencial: una diferencia de 6,51 puntos en la
+dirección esperada por H2. SR_r1 acierta 81 problemas donde
+sequential falla y sequential solo acierta 49 donde SR_r1 falla;
+McNemar pareado devuelve p = 0,0066, significativa al nivel del 1 %.
+**H2 queda respaldada para `r = 1`**: el ciclo Reviewer → Developer
+con una iteración máxima mejora la corrección sobre el pipeline
+secuencial sin ciclo. La mejora, sin embargo, no compensa la
+distancia frente al baseline: SR_r1 sigue 15,2 puntos por debajo del
+monolítico (McNemar p < 0,0001).
 
 La distribución del campo `revision_count` aporta una observación
-relacionada: el 61,14 % de las ejecuciones de SR_r1 aprueba sin
+relacionada: el 59,1 % de las ejecuciones de SR_r1 aprueba sin
 ninguna revisión (`r=0`); en el resto el revisor solo dispara una
 iteración antes del veredicto final. La media de revisiones por
-ejecución es 0,39. Con `max_revisions = 1`, el grafo o bien acepta
+ejecución es 0,41. Con `max_revisions = 1`, el grafo o bien acepta
 en la primera pasada o bien hace un único ciclo Reviewer →
 Developer. Las configuraciones r2 y r3, que permitirían más
 iteraciones, no se ejecutan en esta corrida (S8 del anexo de
@@ -476,8 +460,8 @@ self-reflection tampoco recupera.
 
 ### 7.7.3. Patrón C: convergencia rápida del bucle de self-reflection
 
-El 61,14 % de las ejecuciones de SR_r1 aprueba sin ninguna revisión
-(sección 7.6.2). El 38,86 % restante dispara una iteración del bucle
+El 59,1 % de las ejecuciones de SR_r1 aprueba sin ninguna revisión
+(sección 7.6.2). El 40,9 % restante dispara una iteración del bucle
 Reviewer → Developer. Cruzando esa distribución con el comportamiento
 por problema, se observa que el bucle se activa precisamente en los
 problemas del Patrón A y B, donde el primer intento del Developer

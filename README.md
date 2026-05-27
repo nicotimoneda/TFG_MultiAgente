@@ -20,11 +20,11 @@ El experimento contrasta empíricamente la hipótesis intuitiva de que la especi
 
 | Configuración | n | pass@1 | IC 95 % | Tokens medios | Latencia (s) |
 |---|---:|---:|---|---:|---:|
-| Baseline | 492 | **80,08 %** | [76,4 ; 83,5] | 283 | 5,1 |
-| Sequential | 492 | 58,33 % | [53,9 ; 62,6] | 11 614 | 396,4 |
-| SR (r=1) | 211* | 67,30 % | [60,7 ; 73,5] | 13 719 | 386,8 |
+| Baseline | 492 | **80,08 %** | [76,42 ; 83,54] | 283 | 5,1 |
+| Sequential | 492 | 58,33 % | [53,86 ; 62,60] | 11 614 | 396,4 |
+| SR (r=1) | 492 | 64,84 % | [60,57 ; 69,31] | 14 135 | 411,6 |
 
-\* SR_r1 en curso al cierre del documento. McNemar baseline vs sequential: p < 0,0001 (b=128, c=21 sobre 492 pares).
+McNemar pareado: Baseline vs Sequential p < 0,0001 (b=128, c=21); Baseline vs SR_r1 p < 0,0001 (b=101, c=26); Sequential vs SR_r1 p = 0,0066 (b=49, c=81). H2 queda respaldada para `r = 1`.
 
 Las configuraciones multi-agente cuestan ≈40 × más tokens y ≈77 × más latencia para producir peor pass@1; la frontera de Pareto coste-calidad la ocupa por completo el baseline. La memoria discute tres causas plausibles (propagación de errores entre roles, sobrecarga del prompt de rol en un modelo de 7 B, HumanEval inadecuado para evaluar pipelines multi-agente) y posiciona el resultado dentro de una línea crítica reciente (Chen et al., 2024; Olausson et al., 2024; Huang et al., 2024). Detalle completo en los capítulos 7 y 8 de la memoria.
 

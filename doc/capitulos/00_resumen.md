@@ -33,7 +33,8 @@ borrador automático de la narrativa de hallazgos.
 intuitiva de que la especialización por roles mejora la corrección.
 El baseline alcanza 80,08 % de pass@1; el pipeline secuencial cae a
 58,33 % (McNemar p < 0,0001) y la configuración con self-reflection a
-67,30 % (p < 0,0001 frente al baseline). Las configuraciones
+64,84 % (p < 0,0001 frente al baseline; p = 0,0066 frente al
+secuencial, lo que respalda H2 para `r = 1`). Las configuraciones
 multi-agente consumen alrededor de 40 veces más tokens y 77 veces más
 latencia por problema para producir peor pass@1, y la frontera de
 Pareto coste-calidad la ocupa por completo el baseline. La adherencia
@@ -101,7 +102,8 @@ findings narrative.
 hypothesis that role specialisation improves correctness. The
 baseline reaches 80.08 % pass@1; the sequential pipeline drops to
 58.33 % (McNemar p < 0.0001) and the self-reflection configuration
-to 67.30 % (p < 0.0001 against the baseline). Multi-agent
+to 64.84 % (p < 0.0001 against the baseline; p = 0.0066 against the
+sequential pipeline, supporting H2 for `r = 1`). Multi-agent
 configurations consume roughly 40 times more tokens and 77 times
 more latency per problem to produce worse pass@1, and the
 cost-quality Pareto front is occupied entirely by the baseline.

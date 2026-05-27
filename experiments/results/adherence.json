@@ -1,0 +1,20 @@
+{
+  "baseline": {
+    "total_runs": 492,
+    "runs_with_structural_warning": 0,
+    "total_structural_warnings": 0,
+    "adherence_rate": 1.0
+  },
+  "self_reflection_r1": {
+    "total_runs": 492,
+    "runs_with_structural_warning": 1,
+    "total_structural_warnings": 1,
+    "adherence_rate": 0.9979674796747967
+  },
+  "sequential": {
+    "total_runs": 492,
+    "runs_with_structural_warning": 0,
+    "total_structural_warnings": 0,
+    "adherence_rate": 1.0
+  }
+}

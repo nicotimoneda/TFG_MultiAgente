@@ -44,7 +44,7 @@ Los siguientes elementos del trabajo han sido producidos
 - La interpretación cualitativa del estudio piloto exploratorio
   (capítulo 7, sección 7.2).
 - El veredicto interpretativo de los resultados (rechazo de H1 y
-  H3, no concluyente para H2) y la identificación de las tres
+  H3, respaldo de H2 para `r = 1`) y la identificación de las tres
   causas plausibles del hallazgo negativo (propagación de errores,
   sobrecarga del prompt en modelos pequeños, inadecuación de
   HumanEval para evaluar pipelines multi-agente).

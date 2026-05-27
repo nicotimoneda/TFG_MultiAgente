@@ -181,8 +181,8 @@ solidez estadística de cada estimación.
 El pipeline de análisis (`experiments/analyze_results.py`) consume los CSV
 crudos del directorio `experiments/results/` y produce los artefactos
 listos para la memoria. Funciona de forma incremental: puede ejecutarse
-mientras el experimento principal todavía está en curso y regenera todas
-las figuras y tablas con los datos disponibles en ese momento.
+tanto durante la corrida como tras su cierre, y regenera todas las
+figuras y tablas con los datos disponibles en ese momento.
 
 | Artefacto | Fichero |
 |---|---|
@@ -251,8 +251,9 @@ El proceso, con PID registrado en la consola, se ejecuta en background con
 (`experiments/dashboard.py`) se puede invocar en cualquier momento sobre el
 mismo `progress.json` sin interferir con el runner.
 
-La cardinalidad efectiva al cierre del documento se reporta en el inicio
-del capítulo 7 junto con los resultados parciales disponibles.
+La cardinalidad efectiva al cierre de la corrida (1 476 ejecuciones, sin
+fallos) se reporta en el inicio del capítulo 7 junto con los resultados
+finales.
 
 ## 6.8. Reproducibilidad
 

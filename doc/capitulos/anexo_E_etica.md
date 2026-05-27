@@ -122,32 +122,32 @@ modelos cuantizados sobre Apple Silicon).
 
 El cálculo del consumo se hace directamente a partir de la latencia
 acumulada que el runner registra para cada ejecución, no a partir
-de una estimación genérica. La tabla 7.2 (capítulo 7, corrida al
-cierre del documento) reporta los siguientes tiempos de cómputo
-bajo carga:
+de una estimación genérica. La tabla 7.2 (capítulo 7, corrida cerrada)
+reporta los siguientes tiempos de cómputo bajo carga:
 
 | Configuración | n | Latencia media (s) | Tiempo bajo carga (h) |
 |---|---:|---:|---:|
 | Baseline | 492 | 5,13 | 0,70 |
 | Sequential | 492 | 396,35 | 54,17 |
-| SR (r=1) | 211 | 386,79 | 22,67 |
-| **Total agregado** | **1 195** | — | **≈ 77,5** |
+| SR (r=1) | 492 | 411,59 | 56,25 |
+| **Total agregado** | **1 476** | — | **≈ 111,1** |
 
 A esto se suma el overhead del proceso runner, del servidor Ollama
 en idle entre ejecuciones y de la sesión interactiva de monitorización
-(estimado en ~5 W durante el resto del wall-clock de los ~7 días
-que dura la corrida, ≈ 91 h adicionales a media potencia).
+(estimado en ~5 W durante el resto del wall-clock de los ~5 días
+que dura la corrida, ≈ 9 h adicionales a media potencia sobre las
+~120 h totales del ventanal de ejecución).
 
 Con potencia media bajo carga de 18 W e idle de 5 W, el consumo
 total estimado es:
 
-- Inferencia bajo carga: 77,5 h × 18 W ≈ **1,40 kWh**.
-- Overhead en idle: 91 h × 5 W ≈ **0,46 kWh**.
-- **Total: ≈ 1,86 kWh**.
+- Inferencia bajo carga: 111,1 h × 18 W ≈ **2,00 kWh**.
+- Overhead en idle: 9 h × 5 W ≈ **0,05 kWh**.
+- **Total: ≈ 2,05 kWh**.
 
 Con el mix eléctrico español de 2024 (≈ 0,16 kg CO₂eq/kWh, según el
 factor de emisión publicado por Red Eléctrica de España), la huella
-de carbono del experimento principal es de **≈ 0,30 kg CO₂eq**,
+de carbono del experimento principal es de **≈ 0,33 kg CO₂eq**,
 equivalente al orden de magnitud de un ciclo medio de lavadora
 doméstica.
 
