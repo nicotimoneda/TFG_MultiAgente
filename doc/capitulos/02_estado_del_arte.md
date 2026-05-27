@@ -215,7 +215,7 @@ es diferente a localizar y corregir un bug en una base de código con historial 
 cambios, dependencias externas y pruebas de regresión.
 
 SWE-bench (Jiménez et al., 2024) intentó cerrar esa distancia. El benchmark
-recopila 2.294 issues reales de repositorios de GitHub en Python, cada uno con
+recopila 2 294 issues reales de repositorios de GitHub en Python, cada uno con
 una descripción del problema y un conjunto de pruebas que validan el parche
 resultante. El modelo debe generar un diff que resuelva el issue sin romper el
 resto del código. Los resultados iniciales del paper —con los mejores modelos
