@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TFG Multi-Agente — Demo</title>
+<style>
+  :root{
+    --bg:#0e1116; --fg:#e6edf3; --muted:#7d8590; --border:#30363d;
+    --accent:#58a6ff; --good:#3fb950; --bad:#f85149; --warn:#d29922;
+    --card:#161b22;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+  h1{font-size:22px;margin:0 0 4px}
+  h2{font-size:16px;margin:24px 0 8px;color:var(--accent);
+    border-bottom:1px solid var(--border);padding-bottom:4px}
+  h3{font-size:13px;margin:12px 0 4px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.5px}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  header .sub{color:var(--muted);font-size:13px}
+  table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+  th,td{padding:6px 10px;border-bottom:1px solid var(--border);text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;
+    letter-spacing:.5px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+  tr.highlight td{background:#1a2232}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:12px 0}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px}
+  .card .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .card .value{font-family:var(--mono);font-size:22px;margin-top:2px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;
+    font-weight:600;text-transform:uppercase}
+  .badge.pass{background:rgba(63,185,80,.15);color:var(--good)}
+  .badge.fail{background:rgba(248,81,73,.15);color:var(--bad)}
+  pre{background:#0a0d12;border:1px solid var(--border);border-radius:6px;
+    padding:12px;overflow:auto;font-family:var(--mono);font-size:12.5px;
+    line-height:1.45;color:#c9d1d9;margin:0}
+  .agent-block{margin:14px 0}
+  .agent-block .agent-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+  .agent-block .agent-name{font-weight:600;color:var(--accent);font-family:var(--mono)}
+  .agent-block .agent-meta{color:var(--muted);font-size:12px;font-family:var(--mono)}
+  .timeline{margin:8px 0;font-family:var(--mono);font-size:12.5px}
+  .timeline .row{display:grid;grid-template-columns:80px 110px 1fr 110px;
+    padding:3px 0;border-bottom:1px dashed var(--border)}
+  .timeline .row span:first-child{color:var(--muted)}
+  .timeline .row span:nth-child(3){color:var(--fg)}
+  .timeline .row span:last-child{color:var(--muted);text-align:right}
+  figure{margin:8px 0}
+  figure img,figure video{max-width:100%;border:1px solid var(--border);border-radius:6px}
+  figcaption{color:var(--muted);font-size:12px;margin-top:4px}
+  .controls{margin:6px 0 16px;color:var(--muted);font-size:13px}
+  .controls input{background:#0a0d12;color:var(--fg);border:1px solid var(--border);
+    border-radius:4px;padding:4px 8px;font-family:var(--mono);font-size:12px}
+  .err{color:var(--bad);font-family:var(--mono);padding:12px;border:1px solid var(--bad);
+    border-radius:6px;background:rgba(248,81,73,.05)}
+  details{margin:4px 0}
+  details summary{cursor:pointer;color:var(--muted);font-size:12px;padding:4px 0}
+  .footer{color:var(--muted);font-size:12px;text-align:center;margin:32px 0 0;
+    padding-top:16px;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>Orquestación multi-agente vs LLM monolítico — Demo</h1>
+  <div class="sub">
+    HumanEval · Qwen 2.5 Coder 7B (Q4_K_M) · Ollama local · MacBook Air M2
+  </div>
+</header>
+
+<div class="controls">
+  Trace file:
+  <input id="trace-path" value="trace_HumanEval_X.json" size="32" />
+  <button id="reload">cargar</button>
+  <span id="status" style="margin-left:12px"></span>
+</div>
+
+<!-- =========================== Resumen global =========================== -->
+<h2>Resumen global (1 476 ejecuciones)</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Configuración</th>
+      <th class="num">n</th>
+      <th class="num">pass@1</th>
+      <th>IC 95 %</th>
+      <th class="num">Tokens medios</th>
+      <th class="num">Latencia (s)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- TODO POST-CIERRE: sustituir las cifras finales tras correr analyze_results.py -->
+    <tr>
+      <td>Baseline</td>
+      <td class="num">492</td>
+      <td class="num"><strong>80,08 %</strong></td>
+      <td>[76,4 ; 83,5]</td>
+      <td class="num">283</td>
+      <td class="num">5,1</td>
+    </tr>
+    <tr>
+      <td>Sequential</td>
+      <td class="num">492</td>
+      <td class="num">58,33 %</td>
+      <td>[53,9 ; 62,6]</td>
+      <td class="num">11 614</td>
+      <td class="num">396,4</td>
+    </tr>
+    <tr>
+      <td>SR (r=1)</td>
+      <td class="num">__SR_N__</td>
+      <td class="num">__SR_PASS__</td>
+      <td>__SR_IC__</td>
+      <td class="num">__SR_TOK__</td>
+      <td class="num">__SR_LAT__</td>
+    </tr>
+  </tbody>
+</table>
+<p style="color:var(--muted);font-size:12.5px;margin:4px 0">
+  McNemar baseline vs sequential: <strong>p &lt; 0,0001</strong>
+  (b=128, c=21). McNemar sequential vs SR_r1: <strong>__MCNEMAR_H2__</strong>.
+  H1 rechazada con dirección invertida; H2 <em>__H2_VEREDICT__</em>;
+  H3 rechazada con dirección invertida.
+</p>
+
+<figure>
+  <img src="../figures/cost_quality_pareto.png" alt="Frontera de Pareto coste-calidad" />
+  <figcaption>Frontera de Pareto coste–calidad. El baseline (esquina superior izquierda)
+  domina ambas configuraciones multi-agente en pass@1 con coste 40× menor en tokens
+  y 77× menor en latencia.</figcaption>
+</figure>
+
+<!-- =========================== Problema concreto =========================== -->
+<h2 id="problem-title">Problema demo</h2>
+<div id="problem-meta" style="color:var(--muted);font-size:13px"></div>
+
+<details>
+  <summary>Ver enunciado</summary>
+  <pre id="problem-statement"></pre>
+</details>
+
+<div class="grid" id="config-cards"></div>
+
+<!-- =========================== Vídeo =========================== -->
+<h2>Grabación de la corrida</h2>
+<figure>
+  <video controls preload="metadata" src="demo_video.mp4" poster="demo_poster.png">
+    Tu navegador no soporta &lt;video&gt;. Abre <code>demo/demo_video.mp4</code> directamente.
+  </video>
+  <figcaption>Grabación de las tres configuraciones ejecutándose sobre el mismo
+  problema. El baseline termina en pocos segundos; el pipeline secuencial
+  recorre cinco agentes; la configuración con self-reflection añade el bucle
+  Reviewer → Developer.</figcaption>
+</figure>
+
+<!-- =========================== Trazas por agente =========================== -->
+<h2>Trazas por agente y configuración</h2>
+<div id="traces"></div>
+
+<div class="footer">
+  Nicolás Timoneda Sánchez · TFG · UAX 2025-26 ·
+  <code>github.com/nicotimoneda/TFG_MultiAgente</code>
+</div>
+</div>
+
+<script>
+const CONFIG_LABEL = {
+  baseline: "Baseline",
+  sequential: "Sequential",
+  self_reflection_r1: "SR (r=1)",
+};
+
+const ARTIFACT_LABEL = {
+  prd: "PRD (Product Manager)",
+  design_doc: "Design Doc (Arquitecto)",
+  code_artifact: "Code (Developer)",
+  review_comments: "Review (Code Reviewer)",
+};
+
+function el(tag, attrs={}, children=[]){
+  const e = document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs)){
+    if(k === "class") e.className = v;
+    else if(k === "html") e.innerHTML = v;
+    else e.setAttribute(k, v);
+  }
+  for(const c of (Array.isArray(children) ? children : [children])){
+    if(c == null) continue;
+    e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  }
+  return e;
+}
+
+function fmtSec(s){ return s.toFixed(1) + " s"; }
+function fmtTok(n){ return n.toLocaleString("es-ES"); }
+
+function renderProblem(trace){
+  document.getElementById("problem-title").textContent =
+    "Problema demo — " + trace.problem.task_id;
+  document.getElementById("problem-meta").textContent =
+    "entry_point: " + (trace.problem.entry_point || "(unset)") +
+    " · model: " + trace.model;
+  document.getElementById("problem-statement").textContent = trace.problem.prompt;
+}
+
+function renderCards(trace){
+  const root = document.getElementById("config-cards");
+  root.innerHTML = "";
+  for(const key of ["baseline","sequential","self_reflection_r1"]){
+    const r = trace.configs[key];
+    if(!r){
+      root.appendChild(el("div",{class:"card"},[
+        el("div",{class:"label"},CONFIG_LABEL[key] || key),
+        el("div",{class:"value"},"—"),
+        el("div",{style:"color:var(--muted);font-size:12px;margin-top:6px"},
+          "no incluida en la traza"),
+      ]));
+      continue;
+    }
+    const badge = el("span",
+      {class:"badge " + (r.pass_all_tests ? "pass":"fail")},
+      r.pass_all_tests ? "pass" : "fail");
+    root.appendChild(el("div",{class:"card"},[
+      el("div",{class:"label"},CONFIG_LABEL[key] || key),
+      el("div",{class:"value"},[badge]),
+      el("div",{style:"margin-top:8px;font-size:12.5px;color:var(--muted)"},
+        "latencia: "),
+      el("span",{style:"font-family:var(--mono);color:var(--fg)"},fmtSec(r.latency_seconds)),
+      el("div",{style:"margin-top:4px;font-size:12.5px;color:var(--muted)"},
+        "tokens: "),
+      el("span",{style:"font-family:var(--mono);color:var(--fg)"},
+        fmtTok(r.tokens_input) + " in / " + fmtTok(r.tokens_output) + " out"),
+      r.revision_count > 0 ? el("div",{style:"margin-top:4px;font-size:12.5px;color:var(--muted)"},
+        "revisiones: " + r.revision_count) : null,
+    ]));
+  }
+}
+
+function renderTraces(trace){
+  const root = document.getElementById("traces");
+  root.innerHTML = "";
+  for(const key of ["baseline","sequential","self_reflection_r1"]){
+    const r = trace.configs[key];
+    if(!r) continue;
+    const block = el("div",{},[el("h3",{},CONFIG_LABEL[key] || key)]);
+
+    // Timeline of node events
+    const tl = el("div",{class:"timeline"});
+    tl.appendChild(el("div",{class:"row",style:"font-weight:600;color:var(--muted)"},[
+      el("span",{},"t (s)"),
+      el("span",{},"agente"),
+      el("span",{},"+tok in / out (acum.)"),
+      el("span",{},""),
+    ]));
+    for(const ev of r.events){
+      tl.appendChild(el("div",{class:"row"},[
+        el("span",{},ev.elapsed_s.toFixed(1)),
+        el("span",{},ev.node),
+        el("span",{},"+" + ev.tokens_input_delta + " / +" + ev.tokens_output_delta +
+          "  (acum. " + ev.tokens_input_cum + "/" + ev.tokens_output_cum + ")"),
+        el("span",{},""),
+      ]));
+    }
+    block.appendChild(tl);
+
+    // Final artifacts (only if non-empty)
+    for(const field of ["prd","design_doc","code_artifact","review_comments"]){
+      const content = (r.final_artifacts || {})[field];
+      if(!content) continue;
+      block.appendChild(el("div",{class:"agent-block"},[
+        el("div",{class:"agent-head"},[
+          el("span",{class:"agent-name"},ARTIFACT_LABEL[field] || field),
+          el("span",{class:"agent-meta"},field),
+        ]),
+        el("details",{},[
+          el("summary",{},"ver artefacto (" + content.length + " caracteres)"),
+          el("pre",{},content),
+        ]),
+      ]));
+    }
+    root.appendChild(block);
+  }
+}
+
+async function load(path){
+  const status = document.getElementById("status");
+  status.textContent = "cargando " + path + "…";
+  try{
+    const resp = await fetch(path, {cache:"no-store"});
+    if(!resp.ok) throw new Error("HTTP " + resp.status);
+    const trace = await resp.json();
+    renderProblem(trace);
+    renderCards(trace);
+    renderTraces(trace);
+    status.textContent = "OK";
+  }catch(err){
+    status.textContent = "";
+    document.getElementById("traces").innerHTML =
+      '<div class="err">Error cargando <code>' + path + '</code>: ' + err.message +
+      '<br><br>Si abres este HTML con <code>file://</code> el navegador bloquea fetch. ' +
+      'Sirve la carpeta con <code>python -m http.server</code> desde la raíz del repo y abre ' +
+      '<code>http://localhost:8000/demo/index.html</code>.</div>';
+  }
+}
+
+function init(){
+  const input = document.getElementById("trace-path");
+  const params = new URLSearchParams(location.search);
+  if(params.get("trace")) input.value = params.get("trace");
+  document.getElementById("reload").addEventListener("click", () => load(input.value));
+  load(input.value);
+}
+init();
+</script>
+</body>
+</html>

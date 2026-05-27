@@ -110,6 +110,12 @@ concluyente" a "respaldada con tendencia favorable".**
 - **L27** — eliminar "\* SR_r1 en curso al cierre del documento"; añadir
   la línea con los tres McNemar pareados finales.
 
+### `doc/capitulos/declaracion_ia.md`
+
+- **L47** — "(rechazo de H1 y H3, no concluyente para H2)" → si H2 cierra
+  como respaldada, cambiar a "(rechazo de H1 y H3, respaldo de H2)" o
+  equivalente.
+
 ### `doc/capitulos/anexo_E_etica.md`
 
 - **L131-133** (tabla CO₂e) — fila SR (r=1) con n=492 y latencia

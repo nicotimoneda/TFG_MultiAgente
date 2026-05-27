@@ -110,6 +110,11 @@ Peng, X. y Lou, Y. (2023). ClassEval: A Manually-Crafted Benchmark for
 Evaluating LLMs on Class-level Code Generation. *arXiv preprint
 arXiv:2308.01861*.
 
+Hendrycks, D., Basart, S., Kadavath, S., Mazeika, M., Arora, A., Guo, E.,
+Burns, C., Puranik, S., He, H., Song, D. y Steinhardt, J. (2021). Measuring
+Coding Challenge Competence with APPS. *NeurIPS Datasets and Benchmarks
+Track*. arXiv:2105.09938.
+
 Jiménez, C. E., Yang, J., Wettig, A., Yao, S., Pei, K., Press, O. y
 Narasimhan, K. (2024). SWE-bench: Can Language Models Resolve Real-World
 GitHub Issues? *International Conference on Learning Representations*.

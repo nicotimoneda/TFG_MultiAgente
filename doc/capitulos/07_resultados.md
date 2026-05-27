@@ -128,6 +128,8 @@ Los números de la tabla se regeneran de forma reproducible mediante
 figuras 7.1 a 7.3 con la cardinalidad disponible en el momento de la
 ejecución del análisis.
 
+![pass@1 por configuración con IC 95 %](figures/pass_at_1.png)
+
 Figura 7.1. pass@1 por configuración con intervalos de confianza al 95%
 mediante bootstrap percentil (`figures/pass_at_1.png`). El gráfico se
 regenera automáticamente con datos adicionales conforme avanza la corrida;
@@ -246,6 +248,8 @@ con el eje horizontal en escala logarítmica para acomodar la diferencia
 de dos órdenes de magnitud entre el baseline (283 tokens por problema)
 y las configuraciones multi-agente (más de 11 000 tokens por problema).
 
+![Frontera de Pareto coste-calidad](figures/cost_quality_pareto.png)
+
 Figura 7.2. Frontera de Pareto coste–calidad: tokens totales por problema
 frente a pass@1 (`figures/cost_quality_pareto.png`). Cada punto representa
 una configuración.
@@ -319,6 +323,8 @@ en la primera pasada o bien hace un único ciclo Reviewer →
 Developer. Las configuraciones r2 y r3, que permitirían más
 iteraciones, no se ejecutan en esta corrida (S8 del anexo de
 decisiones); su contraste queda como línea futura.
+
+![Distribución del número de revisiones en SR](figures/revision_distribution.png)
 
 Figura 7.3. Distribución del número de iteraciones de revisión por
 configuración self-reflection (`figures/revision_distribution.png`). Una
