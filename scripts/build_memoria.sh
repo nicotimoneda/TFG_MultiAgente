@@ -34,8 +34,14 @@ COMBINED_MD="$BUILD/${OUT_BASE}_full.md"
 # Order of inclusion. The bibliography goes last by tutor's instruction:
 # no per-chapter references, only the global list at the end.
 CHAPTERS=(
+    # Preliminares (agradecimientos y glosario promovidos al principio
+    # por preferencia del autor; en el .docx con formato UAX irán con
+    # paginación romana, antes del capítulo 1).
+    "doc/capitulos/anexo_F_agradecimientos.md"
     "doc/capitulos/00_resumen.md"
     "doc/capitulos/declaracion_ia.md"
+    "doc/capitulos/anexo_D_glosario.md"
+    # Cuerpo (paginación arábiga desde aquí).
     "doc/capitulos/01_introduccion.md"
     "doc/capitulos/02_estado_del_arte.md"
     "doc/capitulos/03_objetivos.md"
@@ -44,12 +50,13 @@ CHAPTERS=(
     "doc/capitulos/06_experimentos.md"
     "doc/capitulos/07_resultados.md"
     "doc/capitulos/08_conclusiones.md"
+    # Anexos (sin F ni D, que se promovieron a preliminares).
     "doc/capitulos/anexo_A_prompts.md"
     "doc/capitulos/anexo_B_decisiones.md"
     "doc/capitulos/anexo_C_reproducir.md"
-    "doc/capitulos/anexo_D_glosario.md"
     "doc/capitulos/anexo_E_etica.md"
-    "doc/capitulos/anexo_F_agradecimientos.md"
+    # Bibliografía global al final (regla del tutor: sin bibliografía
+    # por capítulo, solo una lista única).
     "doc/referencias/bibliografia.md"
 )
 

@@ -1,9 +1,9 @@
-# Anexo D: Glosario de acrónimos y términos técnicos
+# Glosario y acrónimos
 
-Este anexo recoge los acrónimos y términos técnicos que aparecen
+Este glosario recoge los acrónimos y términos técnicos que aparecen
 reiteradamente en la memoria, agrupados por área temática.
 
-## D.1. Sistemas multi-agente
+## 1. Sistemas multi-agente
 
 | Sigla | Expansión | Definición breve |
 |---|---|---|
@@ -15,7 +15,7 @@ reiteradamente en la memoria, agrupados por área temática.
 | **PM** | Product Manager | Rol del pipeline secuencial encargado de redactar el PRD a partir del enunciado. |
 | **LangGraph** | — | Framework de orquestación de agentes basado en grafos de estado tipados, mantenido por LangChain Inc. (LangChain Inc., 2024). |
 
-## D.2. Modelos de lenguaje
+## 2. Modelos de lenguaje
 
 | Sigla | Expansión | Definición breve |
 |---|---|---|
@@ -26,7 +26,7 @@ reiteradamente en la memoria, agrupados por área temática.
 | **TPM** | Tokens Per Minute | Límite de tasa habitual en proveedores de inferencia comercial. |
 | **RPM** | Requests Per Minute | Límite de tasa por número de solicitudes. |
 
-## D.3. Generación y evaluación de código
+## 3. Generación y evaluación de código
 
 | Sigla | Expansión | Definición breve |
 |---|---|---|
@@ -41,7 +41,7 @@ reiteradamente en la memoria, agrupados por área temática.
 | **CI** | Confidence Interval | Intervalo de confianza estadístico, reportado al 95 % en este trabajo. |
 | **IC** | Intervalo de Confianza | Equivalente en castellano de CI. |
 
-## D.4. Stack tecnológico
+## 4. Stack tecnológico
 
 | Sigla | Expansión | Definición breve |
 |---|---|---|
@@ -54,7 +54,7 @@ reiteradamente en la memoria, agrupados por área temática.
 | **GPL** | GNU General Public License | Familia de licencias de software libre. |
 | **MIT** | Massachusetts Institute of Technology | Licencia de software permisiva, utilizada en este proyecto. |
 
-## D.5. Métodos estadísticos
+## 5. Métodos estadísticos
 
 | Sigla | Expansión | Definición breve |
 |---|---|---|
@@ -63,7 +63,7 @@ reiteradamente en la memoria, agrupados por área temática.
 | **TFG** | Trabajo Fin de Grado | Documento académico final de la titulación. |
 | **UAX** | Universidad Alfonso X el Sabio | Institución académica del autor. |
 
-## D.6. Configuraciones del sistema
+## 6. Configuraciones del sistema
 
 | Etiqueta | Descripción |
 |---|---|
@@ -74,7 +74,7 @@ reiteradamente en la memoria, agrupados por área temática.
 | `ablation_no_architect` | Variante que omite el Arquitecto. |
 | `ablation_no_reviewer` | Variante que omite el Code Reviewer. |
 
-## D.7. Términos del estado compartido
+## 7. Términos del estado compartido
 
 | Campo del `AgentState` | Productor | Descripción |
 |---|---|---|
@@ -91,7 +91,7 @@ reiteradamente en la memoria, agrupados por área temática.
 | `tokens_output` | Todos | Tokens de salida acumulados. |
 | `latency_seconds` | Runner | Tiempo de wall-clock de la ejecución. |
 
-## D.8. Marco normativo y ético
+## 8. Marco normativo y ético
 
 | Sigla | Expansión | Definición breve |
 |---|---|---|

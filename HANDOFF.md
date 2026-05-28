@@ -7,7 +7,7 @@ Documento de transferencia para arrancar una nueva sesión de Claude sin context
 ## Identidad del proyecto
 
 - **Título:** *Orquestación de Equipos de Agentes LLM con Roles Especializados para Resolución Colaborativa de Tareas Complejas de Ingeniería de Software.*
-- **Autor:** Nicolás Timoneda Sánchez. Grado en Computación e IA, UAX. Curso 2025-26.
+- **Autor:** Nicolás Timoneda Martínez (NP 147254). Grado en Computación e IA, UAX. Curso 2025-26.
 - **Repo local:** `~/UNI/TFG/TFG_MultiAgente`
 - **Repo remoto:** `https://github.com/nicotimoneda/TFG_MultiAgente`
 - **Entrega institucional:** **8 de junio de 2026**.

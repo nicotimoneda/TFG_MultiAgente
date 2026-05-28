@@ -143,12 +143,13 @@ presenta el banco experimental. El capítulo 7 analiza los resultados.
 El capítulo 8 recoge las conclusiones y abre líneas de trabajo
 futuro.
 
-Seis anexos completan el documento. El Anexo A reproduce verbatim los
-prompts de sistema y las plantillas de prompt de usuario de los cinco
-roles del pipeline (PM, Arquitecto, Developer, QA Tester, Code Reviewer)
-y del baseline monolítico, incluyendo la variante de Developer Reflexivo
-empleada en la configuración con self-reflection. El Anexo B sintetiza las decisiones técnicas tomadas sprint
-a sprint. El Anexo C consolida los comandos de reproducción del
-experimento. El Anexo D recoge un glosario de acrónimos y términos.
-El Anexo E aborda los aspectos éticos, legales y de sostenibilidad
-del trabajo. El Anexo F contiene los agradecimientos.
+Cuatro anexos completan el documento. El Anexo A reproduce verbatim
+los prompts de sistema y las plantillas de prompt de usuario de los
+cinco roles del pipeline (PM, Arquitecto, Developer, QA Tester, Code
+Reviewer) y del baseline monolítico, incluyendo la variante de
+Developer Reflexivo empleada en la configuración con self-reflection.
+El Anexo B sintetiza las decisiones técnicas tomadas sprint a sprint.
+El Anexo C consolida los comandos de reproducción del experimento. El
+Anexo E aborda los aspectos éticos, legales y de sostenibilidad del
+trabajo. El glosario de acrónimos y los agradecimientos figuran en los
+preliminares del documento, antes del cuerpo principal.
