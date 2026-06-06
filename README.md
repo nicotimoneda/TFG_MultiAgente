@@ -36,7 +36,6 @@ TFG_MultiAgente/
 │   ├── capitulos/             Capítulos en Markdown
 │   ├── tables/                Tablas autogeneradas por el pipeline de análisis
 │   ├── referencias/           Bibliografía global (BibTeX + Markdown)
-│   ├── entregas/              Entregables (resumen ejecutivo, entregas previas)
 │   └── decisiones.md          Documento canónico de decisiones técnicas
 ├── src/                       Código fuente del sistema
 │   ├── state/                 AgentState compartido (TypedDict)
@@ -134,7 +133,6 @@ Productos del análisis:
 - [Capítulos de la memoria](doc/capitulos/) — del resumen a la reflexión final.
 - [Bibliografía global](doc/referencias/bibliografia.md) (BibTeX en `referencias.bib`).
 - [Anexo de decisiones técnicas (documento canónico)](doc/decisiones.md) — sprint a sprint, con alternativas evaluadas y descartadas.
-- [Resumen ejecutivo](doc/entregas/ResumenEjecutivo_EntregaFinal.md).
 
 ## Licencia
 
