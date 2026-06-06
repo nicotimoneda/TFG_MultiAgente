@@ -53,7 +53,7 @@ TFG_MultiAgente/
 │   ├── cache/                 Cache local de benchmarks (HumanEval, MBPP)
 │   └── results/               CSVs por configuración y progress.json
 ├── figures/                   Figuras generadas + diagramas de los grafos
-├── scripts/                   Scripts auxiliares (build memoria, watchdog)
+├── entrega/                   Memoria final del TFG (PDF)
 └── tests/                     Tests unitarios e integración
 ```
 
@@ -85,12 +85,13 @@ python experiments/quick_check.py
 **Corrida canónica del TFG** (≈9 días en MacBook Air M2, resumible):
 
 ```bash
-LLM_BACKEND=ollama \
-MODEL=qwen2.5-coder:7b-instruct-q4_K_M \
-bash scripts/experiment_watchdog.sh
+LLM_BACKEND=ollama python experiments/run_experiments.py \
+    --model qwen2.5-coder:7b-instruct-q4_K_M \
+    --benchmarks humaneval \
+    --configs baseline,sequential,self_reflection_r1
 ```
 
-El watchdog ejecuta las tres configuraciones del barrido principal (`baseline`, `sequential`, `self_reflection_r1`) sobre HumanEval con tres semillas. Si la corrida se interrumpe, reejecutar el mismo comando: las ejecuciones completadas se omiten gracias a la propiedad de resumibilidad del runner.
+Ejecuta las tres configuraciones del barrido principal (`baseline`, `sequential`, `self_reflection_r1`) sobre HumanEval con tres semillas. Si la corrida se interrumpe, reejecutar el mismo comando: las ejecuciones completadas se omiten gracias a la propiedad de resumibilidad del runner.
 
 **Matriz completa** (8 configs × 2 benchmarks × 3 semillas, no ejecutada en la corrida principal por presupuesto de cómputo — entrada S8 del anexo de decisiones):
 
@@ -127,16 +128,9 @@ Productos del análisis:
 - `doc/tables/adherence.md` — adherencia estructural por configuración.
 - `doc/tables/findings_narrative.md` — borrador automático de hallazgos.
 
-## Generar la memoria
-
-```bash
-bash scripts/build_memoria.sh
-```
-
-Produce `build/2526_TFG_GCIA_NP147254_Memoria.docx` (y `.pdf` si hay xelatex instalado) concatenando los 17 ficheros Markdown en orden canónico (resumen, declaración de IA, caps 1-8, anexos A-F, bibliografía).
-
 ## Documentación
 
+- [📄 **Memoria completa (PDF)**](entrega/2526_TFG_GCIA_NP147254_Memoria.pdf) — documento final del TFG (115 págs.).
 - [Capítulos de la memoria](doc/capitulos/) — del resumen a la reflexión final.
 - [Bibliografía global](doc/referencias/bibliografia.md) (BibTeX en `referencias.bib`).
 - [Anexo de decisiones técnicas (documento canónico)](doc/decisiones.md) — sprint a sprint, con alternativas evaluadas y descartadas.
