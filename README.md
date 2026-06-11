@@ -1,7 +1,13 @@
 # Orquestación de Equipos de Agentes LLM para Generación Automática de Código
 
 > Trabajo Fin de Grado · Grado en Computación e IA · Universidad Alfonso X el Sabio · 2025–2026
-> **Stack:** Python · LangGraph · LangChain · Ollama · Qwen 2.5 Coder 7B
+
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C?logo=langgraph&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-Qwen%202.5%20Coder%207B-000000?logo=ollama&logoColor=white)
+![Runs](https://img.shields.io/badge/experimento-1476%20runs%20%C2%B7%20HumanEval-5C2D91)
+![License](https://img.shields.io/badge/License-MIT-1A7F37)
+[![Memoria](https://img.shields.io/badge/Memoria-PDF%20%C2%B7%20115%20p%C3%A1gs-B31B1B?logo=adobeacrobatreader&logoColor=white)](entrega/2526_TFG_GCIA_NP147254_Memoria.pdf)
 
 ---
 
